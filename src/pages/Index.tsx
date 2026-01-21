@@ -132,10 +132,10 @@ export default function Index() {
         <div className="p-6">
           <div className="mb-10 pb-6 border-b">
             <h2 className="text-3xl font-extrabold bg-gradient-to-r from-primary via-chart-1 to-chart-2 bg-clip-text text-transparent mb-2">
-              GAHASP
+              WHAFD
             </h2>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Global Aging & Health<br />Analytics Platform
+              World Health and Frailty Database<br />
             </p>
             <Badge variant="secondary" className="mt-3 text-xs">
               <ActivityIcon className="h-3 w-3 mr-1" />
@@ -251,7 +251,7 @@ export default function Index() {
               </Badge>
               
               <h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-tight font-serif">
-                Global Aging &<br />Health Analytics
+                World Health and Frailty Database
               </h1>
               
               <p className="text-lg lg:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-sans">
