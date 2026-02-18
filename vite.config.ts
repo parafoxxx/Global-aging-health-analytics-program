@@ -17,7 +17,6 @@ export default defineConfig({
   plugins: [react(), tailwindcss(), hercules()],
   resolve: {
     alias: {
-      "@/convex": path.resolve(__dirname, "./convex"),
       "@": path.resolve(__dirname, "./src"),
     },
   },

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { useAction, useQuery } from "convex/react";
 import {
   ActivityIcon,
   ArrowRightIcon,
@@ -15,11 +14,11 @@ import {
   SearchIcon,
   UsersIcon,
 } from "lucide-react";
-import { api } from "@/convex/_generated/api.js";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useCountriesData } from "@/lib/countries-data";
 
 const datasets = [
   {
@@ -131,12 +130,11 @@ function ensureThreeNews(primary: LiveNewsItem[], secondary: LiveNewsItem[] = []
 
 export default function Index() {
   const navigate = useNavigate();
-  const countries = useQuery(api.countries.getAllCountries);
-  const fetchLatestNews = useAction((api as any).news.getLatestNews);
+  const countriesQuery = useCountriesData();
+  const countries = countriesQuery.data;
   const [searchQuery, setSearchQuery] = useState("");
   const [news, setNews] = useState<LiveNewsItem[]>(() => FALLBACK_NEWS);
-  const [isNewsLoading, setIsNewsLoading] = useState(true);
-  const [newsError, setNewsError] = useState<string | null>(null);
+  const [isNewsLoading, setIsNewsLoading] = useState(false);
 
   const summary = useMemo(() => {
     if (!countries || countries.length === 0) {
@@ -181,39 +179,10 @@ export default function Index() {
   };
 
   useEffect(() => {
-    let active = true;
-    let refreshTimer: number | undefined;
-
-    const loadNews = async () => {
-      try {
-        setNewsError(null);
-        if (active) setIsNewsLoading(true);
-        const latest = (await fetchLatestNews()) as LiveNewsItem[];
-        if (!active) return;
-        const normalized = normalizeNews(Array.isArray(latest) ? latest : []);
-        const fixed = ensureThreeNews(normalized, readCachedNews());
-        setNews(fixed);
-        writeCachedNews(fixed);
-      } catch {
-        if (!active) return;
-        setNewsError("Live feed unavailable, showing latest available news.");
-        const fallback = ensureThreeNews(readCachedNews());
-        setNews(fallback);
-      } finally {
-        if (active) setIsNewsLoading(false);
-      }
-    };
-
-    void loadNews();
-    refreshTimer = window.setInterval(() => {
-      void loadNews();
-    }, 15 * 60 * 1000);
-
-    return () => {
-      active = false;
-      if (refreshTimer) window.clearInterval(refreshTimer);
-    };
-  }, [fetchLatestNews]);
+    const fixed = ensureThreeNews(readCachedNews());
+    setNews(fixed);
+    writeCachedNews(fixed);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -271,7 +240,7 @@ export default function Index() {
                   <div className="mt-3 flex flex-wrap gap-2">
                     {suggestions.map((country) => (
                       <button
-                        key={country._id}
+                        key={country.country}
                         type="button"
                         onClick={() => navigate(`/country/${encodeURIComponent(country.country)}`)}
                         className="rounded-full border px-3 py-1 text-xs font-medium hover:border-primary hover:text-primary"
@@ -381,11 +350,6 @@ export default function Index() {
                     <ExternalLinkIcon className="size-4 text-muted-foreground" />
                   </a>
                 ))}
-                {!isNewsLoading && newsError && news.length > 0 && (
-                  <p className="rounded-xl border border-dashed p-3 text-xs text-muted-foreground">
-                    {newsError}
-                  </p>
-                )}
               </CardContent>
             </Card>
 
@@ -399,7 +363,7 @@ export default function Index() {
               <CardContent className="space-y-3">
                 {topFrailtyCountries.map((country, index) => (
                   <button
-                    key={country._id}
+                    key={country.country}
                     onClick={() => navigate(`/country/${encodeURIComponent(country.country)}`)}
                     className="flex w-full items-center justify-between rounded-xl border p-3 text-left hover:border-primary/40"
                   >

@@ -1,7 +1,6 @@
 import { useMemo, type ReactNode } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "motion/react";
-import { useQuery } from "convex/react";
 import { ActivityIcon, ArrowLeftIcon, UserIcon, UsersIcon } from "lucide-react";
 import {
   Cell,
@@ -20,11 +19,11 @@ import {
   RadialBarChart,
   RadialBar,
 } from "recharts";
-import { api } from "@/convex/_generated/api.js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { useCountryByNameData } from "@/lib/countries-data";
 
 type SliceDatum = {
   label: string;
@@ -175,10 +174,8 @@ function GraphPanel({
 export default function CountryPage() {
   const navigate = useNavigate();
   const { country: countryParam } = useParams<{ country: string }>();
-  const country = useQuery(
-    api.countries.getCountryByName,
-    countryParam ? { country: decodeURIComponent(countryParam) } : "skip",
-  );
+  const countryQuery = useCountryByNameData(countryParam ? decodeURIComponent(countryParam) : undefined);
+  const country = countryQuery.data;
 
   const frailtyStatus = useMemo(() => {
     if (!country) return "Unknown";
@@ -187,7 +184,7 @@ export default function CountryPage() {
     return "Moderate";
   }, [country]);
 
-  if (country === undefined) {
+  if (countryQuery.isLoading) {
     return (
       <div className="min-h-screen bg-background px-4 py-8">
         <div className="mx-auto max-w-6xl">

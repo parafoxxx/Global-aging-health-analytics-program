@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "motion/react";
-import { useQuery } from "convex/react";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
@@ -27,28 +26,17 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { api } from "@/convex/_generated/api.js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { useCountriesData, type CountryDoc } from "@/lib/countries-data";
 
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 const MAX_COMPARE = 5;
 const MIN_COMPARE = 2;
 const PALETTE = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"];
-
-type CountryDoc = {
-  country: string;
-  total_count: number;
-  frail_percentage: number;
-  comorbidity_percentage: number;
-  avg_age: number;
-  female_percentage: number;
-  age_groups: Record<string, number>;
-  health_ratings: Record<string, number>;
-};
 
 type InsightItem = {
   severity: "high" | "medium" | "low";
@@ -137,7 +125,8 @@ function insightsForCountry(
 
 export default function MapPage() {
   const navigate = useNavigate();
-  const countries = useQuery(api.countries.getAllCountries) as CountryDoc[] | undefined;
+  const countriesQuery = useCountriesData();
+  const countries = countriesQuery.data;
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchInput, setSearchInput] = useState(searchParams.get("search") ?? "");
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);

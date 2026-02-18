@@ -73,3 +73,57 @@ export default defineConfig([
   },
 ])
 ```
+
+## SQL Mode
+
+Country pages run on SQL via REST API.
+
+Set this env var in `.env.local`:
+
+```bash
+VITE_SQL_API_BASE_URL=http://localhost:4000
+```
+
+SQL table schema is provided at `sql/schema.sql`.
+
+### SQL API Endpoints
+
+Implemented endpoints:
+
+- `GET /api/countries`
+- `GET /api/countries/:country`
+
+Server file:
+
+- `server/sql-api.js`
+
+Run SQL API:
+
+```bash
+pnpm install
+pnpm run dev:sql-api
+```
+
+Required environment:
+
+```bash
+# Option 1 (recommended)
+DATABASE_URL=postgres://user:password@localhost:5432/your_db
+
+# Option 2 (individual vars)
+PGHOST=localhost
+PGPORT=5432
+PGUSER=postgres
+PGPASSWORD=your_password
+PGDATABASE=your_db
+
+# Optional
+SQL_API_PORT=4000
+SQL_API_CORS_ORIGIN=http://localhost:5173
+```
+
+Frontend points to SQL API with:
+
+```bash
+VITE_SQL_API_BASE_URL=http://localhost:4000
+```
