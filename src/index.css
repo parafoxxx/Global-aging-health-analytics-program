@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Merriweather:wght@300;400;700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&family=JetBrains+Mono:wght@400;600&display=swap");
 
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -7,9 +7,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: Inter, system-ui, -apple-system, sans-serif;
-  --font-mono: "IBM Plex Mono", Consolas, monospace;
-  --font-serif: Merriweather, Georgia, serif;
+  --font-sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, monospace;
+  --font-serif: "IBM Plex Serif", Georgia, serif;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -109,9 +109,9 @@
   --sidebar-border: oklch(0.90 0.005 247);
   --sidebar-ring: oklch(0.42 0.12 252);
   --destructive-foreground: oklch(0.99 0 0);
-  --font-sans: Inter, system-ui, -apple-system, sans-serif;
-  --font-serif: Merriweather, Georgia, serif;
-  --font-mono: "IBM Plex Mono", Consolas, monospace;
+  --font-sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-serif: "IBM Plex Serif", Georgia, serif;
+  --font-mono: "JetBrains Mono", Consolas, monospace;
   --shadow-color: rgba(29,161,242,0.15);
   --shadow-opacity: 0;
   --shadow-blur: 0px;
@@ -165,9 +165,9 @@
   --sidebar-ring: oklch(0.60 0.14 220);
   --destructive-foreground: oklch(0.99 0 0);
   --radius: 0.75rem;
-  --font-sans: Inter, system-ui, -apple-system, sans-serif;
-  --font-serif: Merriweather, Georgia, serif;
-  --font-mono: "IBM Plex Mono", Consolas, monospace;
+  --font-sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-serif: "IBM Plex Serif", Georgia, serif;
+  --font-mono: "JetBrains Mono", Consolas, monospace;
   --shadow-color: rgba(29,161,242,0.25);
   --shadow-opacity: 0;
   --shadow-blur: 0px;
@@ -190,8 +190,28 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    scroll-behavior: smooth;
+  }
   body {
     @apply bg-background text-foreground;
     letter-spacing: var(--tracking-normal);
+    background: var(--background);
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: color-mix(in oklch, var(--primary) 32%, white);
+    color: var(--primary-foreground);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
