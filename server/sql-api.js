@@ -37,6 +37,17 @@ const TABLE_SQL_STATEMENTS = [
   )
   `,
   "create index if not exists countries_country_idx on countries (country)",
+  `
+  create table if not exists country_frailty_factors (
+    country text not null,
+    rank smallint not null check (rank between 1 and 3),
+    factor_name text not null,
+    score double precision not null,
+    accuracy double precision,
+    primary key (country, rank)
+  )
+  `,
+  "create index if not exists country_frailty_factors_country_idx on country_frailty_factors (country)",
 ];
 
 let db = null;
@@ -201,6 +212,45 @@ app.get("/api/countries/:country", async (req, res) => {
   } catch (error) {
     console.error("GET /api/countries/:country failed", error);
     res.status(500).json({ message: "Failed to fetch country" });
+  }
+});
+
+app.get("/api/countries/:country/factors", async (req, res) => {
+  try {
+    const countryParam = String(req.params.country ?? "").trim();
+    if (!countryParam) {
+      res.status(400).json({ message: "Country is required" });
+      return;
+    }
+
+    const result = await query(
+      `
+      select country, rank, factor_name, score, accuracy
+      from country_frailty_factors
+      where lower(trim(country)) = lower(trim($1))
+      order by rank asc
+      `,
+      [countryParam],
+    );
+
+    if (result.rowCount === 0) {
+      res.status(404).json({ message: "Factors not found" });
+      return;
+    }
+
+    const rows = result.rows;
+    res.json({
+      country: rows[0].country,
+      accuracy: rows[0].accuracy === null ? null : Number(rows[0].accuracy),
+      factors: rows.map((row) => ({
+        rank: Number(row.rank),
+        name: row.factor_name,
+        score: Number(row.score),
+      })),
+    });
+  } catch (error) {
+    console.error("GET /api/countries/:country/factors failed", error);
+    res.status(500).json({ message: "Failed to fetch country factors" });
   }
 });
 

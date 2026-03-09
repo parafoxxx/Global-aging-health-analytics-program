@@ -32,6 +32,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { useCountriesData, type CountryDoc } from "@/lib/countries-data";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 const MAX_COMPARE = 5;
@@ -272,11 +273,14 @@ export default function MapPage() {
           transition={{ duration: 0.4 }}
           className="mb-8 flex flex-wrap items-center justify-between gap-3"
         >
-          <div>
-            <h1 className="text-3xl font-serif font-bold md:text-4xl">Global Frailty Atlas</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Hover countries for details. Compare 2 to 5 countries in the panel below.
-            </p>
+          <div className="flex items-center gap-3">
+            <BrandLogo className="h-11 w-11 rounded-md object-contain" />
+            <div>
+              <h1 className="text-3xl font-serif font-bold md:text-4xl">Global Frailty Atlas</h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Hover countries for details. Compare 2 to 5 countries in the panel below.
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={() => navigate("/")}>

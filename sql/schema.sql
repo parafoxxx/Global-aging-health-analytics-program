@@ -23,3 +23,15 @@ create table if not exists countries (
 );
 
 create index if not exists countries_country_idx on countries (country);
+
+create table if not exists country_frailty_factors (
+  country text not null,
+  rank smallint not null check (rank between 1 and 3),
+  factor_name text not null,
+  score double precision not null,
+  accuracy double precision,
+  primary key (country, rank)
+);
+
+create index if not exists country_frailty_factors_country_idx
+  on country_frailty_factors (country);

@@ -11,6 +11,7 @@ import {
   GlobeIcon,
   LoaderCircleIcon,
   MapIcon,
+  MicIcon,
   SearchIcon,
   UsersIcon,
 } from "lucide-react";
@@ -19,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useCountriesData } from "@/lib/countries-data";
+import { BrandLogo } from "@/components/BrandLogo";
 
 const datasets = [
   {
@@ -188,14 +190,21 @@ export default function Index() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
-          <button onClick={() => navigate("/")} className="text-left">
-            <p className="text-lg font-semibold tracking-tight">GAHASP</p>
-            <p className="text-xs text-muted-foreground">Global Aging & Health Analytics</p>
+          <button onClick={() => navigate("/")} className="flex items-center gap-3 text-left">
+            <BrandLogo className="h-10 w-10 rounded-md object-contain" />
+            <span>
+              <p className="text-lg font-semibold tracking-tight">GAHASP</p>
+              <p className="text-xs text-muted-foreground">Global Aging & Health Analytics</p>
+            </span>
           </button>
           <nav className="hidden items-center gap-2 md:flex">
             <Button variant="ghost" onClick={() => scrollTo("datasets")}>Data Sources</Button>
             <Button variant="ghost" onClick={() => scrollTo("insights")}>Insights</Button>
             <Button variant="ghost" onClick={() => scrollTo("journals")}>Journals</Button>
+            <Button variant="outline" onClick={() => navigate("/survey")}>
+              <MicIcon className="mr-2 size-4" />
+              Voice Survey
+            </Button>
             <Button onClick={() => navigate("/map")}>
               <MapIcon className="mr-2 size-4" />
               Open Map
@@ -234,6 +243,10 @@ export default function Index() {
                   <Button type="submit">
                     Search
                     <ArrowRightIcon className="ml-2 size-4" />
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => navigate("/survey")}>
+                    <MicIcon className="mr-2 size-4" />
+                    Voice Survey
                   </Button>
                 </div>
                 {suggestions.length > 0 && (

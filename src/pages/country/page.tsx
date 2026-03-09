@@ -1,7 +1,7 @@
 import { useMemo, type ReactNode } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "motion/react";
-import { ActivityIcon, ArrowLeftIcon, UserIcon, UsersIcon } from "lucide-react";
+import { ActivityIcon, ArrowLeftIcon, SparklesIcon, UserIcon, UsersIcon } from "lucide-react";
 import {
   Cell,
   Pie,
@@ -23,7 +23,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { useCountryByNameData } from "@/lib/countries-data";
+import { useCountryByNameData, useCountryFactorsData } from "@/lib/countries-data";
+import { BrandLogo } from "@/components/BrandLogo";
 
 type SliceDatum = {
   label: string;
@@ -45,6 +46,15 @@ const PALETTE = [
   "var(--chart-4)",
   "var(--chart-5)",
 ];
+
+const FACTOR_DESCRIPTIONS: Record<string, string> = {
+  "Age Group": "Age distribution is a strong determinant of frailty burden in this population.",
+  "Self Rated Health": "Self-rated health captures broad functional decline and vulnerability signals.",
+  "Marital Status": "Social support and household context can influence resilience and frailty outcomes.",
+  "Marriage Age (Categories)": "Life-course social context around marriage timing appears linked to frailty risk.",
+  "Comorbidity Status": "Co-existing chronic conditions directly increase frailty vulnerability.",
+  Gender: "Sex-based differences in aging and care access are influencing frailty outcomes.",
+};
 
 function parseAgeOrder(label: string) {
   const match = label.match(/\d+/);
@@ -176,6 +186,8 @@ export default function CountryPage() {
   const { country: countryParam } = useParams<{ country: string }>();
   const countryQuery = useCountryByNameData(countryParam ? decodeURIComponent(countryParam) : undefined);
   const country = countryQuery.data;
+  const factorsQuery = useCountryFactorsData(country?.country);
+  const factors = factorsQuery.data;
 
   const frailtyStatus = useMemo(() => {
     if (!country) return "Unknown";
@@ -258,9 +270,12 @@ export default function CountryPage() {
           className="mb-8 rounded-3xl border bg-card/85 p-6 shadow-xl backdrop-blur"
         >
           <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <h1 className="text-4xl font-serif font-bold tracking-tight md:text-5xl">{country.country}</h1>
-              <p className="mt-2 text-sm text-muted-foreground">Country-level health and frailty analytics</p>
+            <div className="flex items-center gap-3">
+              <BrandLogo className="h-12 w-12 rounded-md object-contain" />
+              <div>
+                <h1 className="text-4xl font-serif font-bold tracking-tight md:text-5xl">{country.country}</h1>
+                <p className="mt-2 text-sm text-muted-foreground">Country-level health and frailty analytics</p>
+              </div>
             </div>
             <div className="rounded-xl border bg-accent/45 px-4 py-2 text-right">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Frailty status</p>
@@ -316,6 +331,72 @@ export default function CountryPage() {
             </CardContent>
           </Card>
         </motion.div>
+
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="inline-flex items-center gap-2">
+              <SparklesIcon className="size-4 text-primary" />
+              Top Factors Affecting Frailty
+            </CardTitle>
+            <CardDescription>
+              Country-specific feature importance from your uploaded model output
+              {factors?.accuracy !== null && factors?.accuracy !== undefined
+                ? ` (accuracy ${(factors.accuracy * 100).toFixed(0)}%)`
+                : ""}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {factorsQuery.isLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-16 w-full rounded-xl" />
+                ))}
+              </div>
+            ) : factors?.factors?.length ? (
+              <div className="space-y-3">
+                {[...factors.factors]
+                  .sort((a, b) => b.score - a.score)
+                  .slice(0, 3)
+                  .map((factor, index) => (
+                    <motion.div
+                      key={`${factor.rank}-${factor.name}`}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.28, delay: index * 0.07 }}
+                      className="rounded-xl border bg-card/70 p-3"
+                    >
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <p className="text-sm font-semibold">
+                          Rank #{index + 1}: {factor.name}
+                        </p>
+                        <p className="text-xs font-semibold text-primary">
+                          {(factor.score * 100).toFixed(1)}%
+                        </p>
+                      </div>
+                      <div className="h-2.5 overflow-hidden rounded-full bg-muted">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.max(2, factor.score * 100)}%` }}
+                          transition={{ duration: 0.7, delay: 0.12 + index * 0.07 }}
+                          className="h-full rounded-full"
+                          style={{
+                            background: `linear-gradient(90deg, ${PALETTE[index % PALETTE.length]}, color-mix(in oklch, ${PALETTE[index % PALETTE.length]} 70%, white))`,
+                          }}
+                        />
+                      </div>
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        {FACTOR_DESCRIPTIONS[factor.name] ?? "This factor materially contributes to frailty prediction for this country."}
+                      </p>
+                    </motion.div>
+                  ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No factor data available for this country yet.
+              </p>
+            )}
+          </CardContent>
+        </Card>
 
         <Card className="mt-6">
           <CardHeader>
