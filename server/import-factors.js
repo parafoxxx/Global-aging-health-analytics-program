@@ -1,6 +1,8 @@
 import dotenv from "dotenv";
 import { Pool } from "pg";
 import xlsx from "xlsx";
+import { PGlite } from "@electric-sql/pglite";
+import fs from "node:fs";
 
 dotenv.config();
 dotenv.config({ path: ".env.local", override: true });
@@ -11,15 +13,29 @@ if (!filePath) {
   process.exit(1);
 }
 
-const pool = process.env.DATABASE_URL
-  ? new Pool({ connectionString: process.env.DATABASE_URL })
-  : new Pool({
-      host: process.env.PGHOST ?? "localhost",
-      port: Number(process.env.PGPORT ?? 5432),
-      user: process.env.PGUSER ?? "postgres",
-      password: process.env.PGPASSWORD ?? "",
-      database: process.env.PGDATABASE ?? "postgres",
-    });
+let db = null;
+let mode = "postgres";
+
+async function initDb() {
+  try {
+    const pool = process.env.DATABASE_URL
+      ? new Pool({ connectionString: process.env.DATABASE_URL })
+      : new Pool({
+          host: process.env.PGHOST ?? "localhost",
+          port: Number(process.env.PGPORT ?? 5432),
+          user: process.env.PGUSER ?? "postgres",
+          password: process.env.PGPASSWORD ?? "",
+          database: process.env.PGDATABASE ?? "postgres",
+        });
+    await pool.query("select 1");
+    db = pool;
+    mode = "postgres";
+  } catch {
+    fs.mkdirSync("./.data", { recursive: true });
+    db = new PGlite("./.data/pglite");
+    mode = "pglite";
+  }
+}
 
 const num = (value) => {
   if (value === null || value === undefined || value === "") return null;
@@ -28,16 +44,28 @@ const num = (value) => {
 };
 
 async function run() {
+  await initDb();
   const wb = xlsx.readFile(filePath);
   const sheetName = wb.SheetNames[0];
   const rows = xlsx.utils.sheet_to_json(wb.Sheets[sheetName], { defval: null });
 
-  const client = await pool.connect();
   let countriesCount = 0;
   let factorRows = 0;
   try {
-    await client.query("begin");
-    await client.query("delete from country_frailty_factors");
+    await db.query("begin");
+    await db.query(
+      `
+      create table if not exists country_frailty_factors (
+        country text not null,
+        rank smallint not null check (rank between 1 and 3),
+        factor_name text not null,
+        score double precision not null,
+        accuracy double precision,
+        primary key (country, rank)
+      )
+      `,
+    );
+    await db.query("delete from country_frailty_factors");
 
     for (const row of rows) {
       const country = String(row["Country"] ?? "").trim();
@@ -51,7 +79,7 @@ async function run() {
       ].filter((item) => item.name && item.score !== null);
 
       for (const factor of factors) {
-        await client.query(
+        await db.query(
           `
           insert into country_frailty_factors (country, rank, factor_name, score, accuracy)
           values ($1, $2, $3, $4, $5)
@@ -68,17 +96,17 @@ async function run() {
       countriesCount += 1;
     }
 
-    await client.query("commit");
-    console.log(`Imported factors for ${countriesCount} countries (${factorRows} factor rows).`);
+    await db.query("commit");
+    console.log(`Imported factors for ${countriesCount} countries (${factorRows} factor rows) using ${mode}.`);
   } catch (error) {
-    await client.query("rollback");
+    await db.query("rollback");
     console.error("Import failed:", error);
     process.exitCode = 1;
   } finally {
-    client.release();
-    await pool.end();
+    if (mode === "postgres" && db) {
+      await db.end();
+    }
   }
 }
 
 await run();
-

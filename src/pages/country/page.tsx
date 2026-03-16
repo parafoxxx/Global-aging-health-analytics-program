@@ -391,9 +391,12 @@ export default function CountryPage() {
                   ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">
-                No factor data available for this country yet.
-              </p>
+              <div className="rounded-xl border border-dashed bg-accent/20 p-3 text-sm text-muted-foreground">
+                <p>No factor data available for this country yet.</p>
+                <p className="mt-1 text-xs">
+                  Import factors with: <code>node server/import-factors.js "d:\Untitled spreadsheet (1).xlsx"</code>
+                </p>
+              </div>
             )}
           </CardContent>
         </Card>

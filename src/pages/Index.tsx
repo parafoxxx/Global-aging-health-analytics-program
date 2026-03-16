@@ -7,6 +7,7 @@ import {
   ArrowRightIcon,
   BookOpenIcon,
   DatabaseIcon,
+  HeartPulseIcon,
   ExternalLinkIcon,
   GlobeIcon,
   LoaderCircleIcon,
@@ -201,9 +202,23 @@ export default function Index() {
             <Button variant="ghost" onClick={() => scrollTo("datasets")}>Data Sources</Button>
             <Button variant="ghost" onClick={() => scrollTo("insights")}>Insights</Button>
             <Button variant="ghost" onClick={() => scrollTo("journals")}>Journals</Button>
-            <Button variant="outline" onClick={() => navigate("/survey")}>
-              <MicIcon className="mr-2 size-4" />
-              Voice Survey
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigate("/survey")}
+              aria-label="Voice Survey"
+              title="Voice Survey"
+            >
+              <MicIcon className="size-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => navigate("/depression-test")}
+              aria-label="Depression Test"
+              title="Depression Test"
+            >
+              <HeartPulseIcon className="size-4" />
             </Button>
             <Button onClick={() => navigate("/map")}>
               <MapIcon className="mr-2 size-4" />
@@ -244,9 +259,25 @@ export default function Index() {
                     Search
                     <ArrowRightIcon className="ml-2 size-4" />
                   </Button>
-                  <Button type="button" variant="outline" onClick={() => navigate("/survey")}>
-                    <MicIcon className="mr-2 size-4" />
-                    Voice Survey
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => navigate("/survey")}
+                    aria-label="Voice Survey"
+                    title="Voice Survey"
+                  >
+                    <MicIcon className="size-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => navigate("/depression-test")}
+                    aria-label="Depression Test"
+                    title="Depression Test"
+                  >
+                    <HeartPulseIcon className="size-4" />
                   </Button>
                 </div>
                 {suggestions.length > 0 && (

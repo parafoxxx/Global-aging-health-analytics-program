@@ -4,6 +4,5 @@ type BrandLogoProps = {
 };
 
 export function BrandLogo({ className = "h-66 w-66", alt = "GAHASP logo" }: BrandLogoProps) {
-  return <img src="/logo.png" alt={alt} className={className} />;
+  return <img src="/image.png" alt={alt} className={className} />;
 }
-
