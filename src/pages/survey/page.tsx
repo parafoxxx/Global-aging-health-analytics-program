@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import {
   ArrowLeftIcon,
   CheckCircle2Icon,
+  DatabaseIcon,
   DownloadIcon,
+  LoaderCircleIcon,
   MicIcon,
   PauseIcon,
   PlayIcon,
@@ -12,10 +14,19 @@ import {
   Volume2Icon,
 } from "lucide-react";
 import { BrandLogo } from "@/components/BrandLogo";
+import { AssessmentLockedCard } from "@/components/AssessmentLockedCard";
+import { ParticipantIntakeCard } from "@/components/ParticipantIntakeCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import {
+  AssessmentApiError,
+  getStoredParticipantProfile,
+  submitAssessmentSubmission,
+  useParticipantSubmissionStatuses,
+  type StoredParticipantProfile,
+} from "@/lib/assessment-api";
 
 type SurveyOption = {
   key: string;
@@ -70,12 +81,15 @@ type WebSpeechRecognition = {
 };
 
 type SpeechRecognitionCtor = new () => WebSpeechRecognition;
+
 type ListenMode = "hi-IN" | "en-IN";
 
 type SurveyDraft = {
   currentIndex: number;
   responses: SurveyResponse[];
 };
+
+type SaveState = "idle" | "saving" | "saved" | "error";
 
 const STORAGE_KEY = "gahasp_voice_survey_v2";
 
@@ -192,12 +206,28 @@ export default function SurveyPage() {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [error, setError] = useState("");
+  const [participantProfile, setParticipantProfile] = useState<StoredParticipantProfile | null>(() =>
+    getStoredParticipantProfile(),
+  );
+  const [isEditingProfile, setIsEditingProfile] = useState(() => getStoredParticipantProfile() === null);
+  const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [saveError, setSaveError] = useState("");
+  const [submissionId, setSubmissionId] = useState<number | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(true);
+  const saveInFlightRef = useRef(false);
+  const submissionStatusQuery = useParticipantSubmissionStatuses(participantProfile?.externalParticipantId);
+  const currentSubmission = submissionStatusQuery.data?.find((item) => item.assessmentType === "voice-survey") ?? null;
 
   const currentQuestion = QUESTIONS[currentIndex] ?? null;
   const responseMap = useMemo(() => new Map(responses.map((response) => [response.questionId, response])), [responses]);
+  const orderedResponses = useMemo(
+    () => QUESTIONS.map((question) => responseMap.get(question.id)).filter((item): item is SurveyResponse => Boolean(item)),
+    [responseMap],
+  );
   const savedCurrent = currentQuestion ? responseMap.get(currentQuestion.id) : null;
   const answeredCount = responseMap.size;
   const progressValue = (answeredCount / QUESTIONS.length) * 100;
+  const isSubmissionLocked = Boolean(currentSubmission) || (saveState === "saved" && !hasUnsavedChanges);
 
   const canSpeak = typeof window !== "undefined" && "speechSynthesis" in window;
   const RecognitionAPI =
@@ -215,6 +245,15 @@ export default function SurveyPage() {
     ).webkitSpeechRecognition ??
     null;
   const canListen = RecognitionAPI !== null;
+
+  const handleParticipantSave = (profile: StoredParticipantProfile) => {
+    setParticipantProfile(profile);
+    setIsEditingProfile(false);
+    setSaveState("idle");
+    setSaveError("");
+    setSubmissionId(null);
+    setHasUnsavedChanges(true);
+  };
 
   useEffect(() => {
     try {
@@ -234,23 +273,10 @@ export default function SurveyPage() {
   }, [currentIndex, responses]);
 
   useEffect(() => {
-    const stopVisualizer = () => {
-      if (animationFrameRef.current !== null) {
-        cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
-      }
-      mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
-      mediaStreamRef.current = null;
-      analyserRef.current = null;
-      audioContextRef.current?.close();
-      audioContextRef.current = null;
-      setVisualizerLevels(Array.from({ length: 24 }, () => 4));
-    };
-
     return () => {
       recognitionRef.current?.stop();
       window.speechSynthesis.cancel();
-      stopVisualizer();
+      stopMicVisualizer();
     };
   }, []);
 
@@ -308,6 +334,7 @@ export default function SurveyPage() {
   };
 
   const saveResponse = (option: SurveyOption, transcript: string, confidence: number | null) => {
+    if (isSubmissionLocked) return;
     if (!currentQuestion) return;
     const payload: SurveyResponse = {
       questionId: currentQuestion.id,
@@ -322,6 +349,62 @@ export default function SurveyPage() {
       const withoutCurrent = prev.filter((item) => item.questionId !== currentQuestion.id);
       return [...withoutCurrent, payload];
     });
+    setSaveState("idle");
+    setSaveError("");
+    setSubmissionId(null);
+    setHasUnsavedChanges(true);
+  };
+
+  const submitSurvey = async () => {
+    if (!participantProfile || answeredCount < QUESTIONS.length || saveInFlightRef.current) return;
+    if (!hasUnsavedChanges && saveState === "saved") return;
+
+    saveInFlightRef.current = true;
+    setSaveState("saving");
+    setSaveError("");
+
+    try {
+      const response = await submitAssessmentSubmission({
+        participant: participantProfile,
+        assessment: {
+          type: "voice-survey",
+          totalScore: null,
+          maxScore: null,
+          normalizedScore: null,
+          resultLabel: "Completed voice survey",
+          answers: QUESTIONS.map((question) => {
+            const answer = responseMap.get(question.id) ?? null;
+            return {
+              questionId: question.id,
+              questionEn: question.en,
+              questionHi: question.hi,
+              selectedOptionKey: answer?.selectedOptionKey ?? null,
+              selectedOptionEn: answer?.selectedOptionEn ?? null,
+              selectedOptionHi: answer?.selectedOptionHi ?? null,
+              transcript: answer?.transcript ?? null,
+              confidence: answer?.confidence ?? null,
+              timestamp: answer?.timestamp ?? null,
+            };
+          }),
+          metadata: {
+            instrument: "Voice survey bot",
+            answeredCount,
+          },
+        },
+      });
+
+      setSaveState("saved");
+      setSubmissionId(response.submissionId);
+      setHasUnsavedChanges(false);
+    } catch (submissionError) {
+      if (submissionError instanceof AssessmentApiError && submissionError.status === 409) {
+        await submissionStatusQuery.refetch();
+      }
+      setSaveState("error");
+      setSaveError(submissionError instanceof Error ? submissionError.message : "Failed to save survey.");
+    } finally {
+      saveInFlightRef.current = false;
+    }
   };
 
   const speakQuestionAndOptions = () => {
@@ -374,12 +457,17 @@ export default function SurveyPage() {
   };
 
   const startListening = () => {
+    if (isSubmissionLocked) return;
     if (!RecognitionAPI || !canListen || !currentQuestion) return;
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
+    window.speechSynthesis.cancel();
     setError("");
     setLiveTranscript("");
     setLiveConfidence(null);
     latestTranscriptRef.current = "";
     latestConfidenceRef.current = null;
+    setVisualizerLevels(Array.from({ length: 24 }, () => 18));
 
     const recognition = new RecognitionAPI();
     recognition.continuous = false;
@@ -411,12 +499,14 @@ export default function SurveyPage() {
     };
 
     recognition.onerror = (event) => {
+      recognitionRef.current = null;
       setError(`Mic recognition error: ${event.error ?? "unknown"}`);
       setIsListening(false);
       stopMicVisualizer();
     };
 
     recognition.onend = () => {
+      recognitionRef.current = null;
       setIsListening(false);
       stopMicVisualizer();
       const transcript = latestTranscriptRef.current.trim();
@@ -429,18 +519,26 @@ export default function SurveyPage() {
     };
 
     recognitionRef.current = recognition;
-    setIsListening(true);
-    recognition.start();
-    void startMicVisualizer();
+    try {
+      setIsListening(true);
+      recognition.start();
+    } catch {
+      recognitionRef.current = null;
+      setIsListening(false);
+      stopMicVisualizer();
+      setError("Speech recognition could not start. Please wait a moment and try again.");
+    }
   };
 
   const stopListening = () => {
     recognitionRef.current?.stop();
+    recognitionRef.current = null;
     setIsListening(false);
     stopMicVisualizer();
   };
 
   const goNext = () => {
+    if (isSubmissionLocked) return;
     setLiveTranscript("");
     setLiveConfidence(null);
     setError("");
@@ -448,6 +546,7 @@ export default function SurveyPage() {
   };
 
   const goPrevious = () => {
+    if (isSubmissionLocked) return;
     setLiveTranscript("");
     setLiveConfidence(null);
     setError("");
@@ -455,10 +554,7 @@ export default function SurveyPage() {
   };
 
   const exportJson = () => {
-    const ordered = QUESTIONS.map((question) => responseMap.get(question.id)).filter(
-      (item): item is SurveyResponse => Boolean(item),
-    );
-    downloadTextFile("survey_responses.json", JSON.stringify(ordered, null, 2), "application/json");
+    downloadTextFile("survey_responses.json", JSON.stringify(orderedResponses, null, 2), "application/json");
   };
 
   const exportCsv = () => {
@@ -493,6 +589,7 @@ export default function SurveyPage() {
   };
 
   const resetSurvey = () => {
+    if (isSubmissionLocked) return;
     recognitionRef.current?.stop();
     stopMicVisualizer();
     setCurrentIndex(0);
@@ -503,8 +600,50 @@ export default function SurveyPage() {
     latestConfidenceRef.current = null;
     setIsListening(false);
     setError("");
+    setSaveState("idle");
+    setSaveError("");
+    setSubmissionId(null);
+    setHasUnsavedChanges(true);
     window.localStorage.removeItem(STORAGE_KEY);
   };
+
+  if (!participantProfile || isEditingProfile) {
+    return (
+      <ParticipantIntakeCard
+        title="Voice Survey Bot"
+        description="Collect participant details once, then attach them to each finished survey submission."
+        initialProfile={participantProfile}
+        onSave={handleParticipantSave}
+        onCancel={() => navigate("/")}
+      />
+    );
+  }
+
+  if (submissionStatusQuery.isLoading) {
+    return (
+      <div className="min-h-screen bg-[radial-gradient(circle_at_12%_0%,color-mix(in_oklch,var(--chart-2)_18%,transparent),transparent_34%),linear-gradient(to_bottom,var(--background),color-mix(in_oklch,var(--accent)_24%,var(--background)))] px-4 py-8">
+        <div className="mx-auto max-w-3xl">
+          <Card>
+            <CardContent className="flex items-center gap-3 pt-6 text-sm text-muted-foreground">
+              <LoaderCircleIcon className="size-5 animate-spin" />
+              Checking whether this participant has already submitted the voice survey.
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentSubmission) {
+    return (
+      <AssessmentLockedCard
+        title="Voice Survey Bot"
+        description="One submission per participant is allowed for this survey."
+        submission={currentSubmission}
+        onHome={() => navigate("/")}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_12%_0%,color-mix(in_oklch,var(--chart-2)_18%,transparent),transparent_34%),linear-gradient(to_bottom,var(--background),color-mix(in_oklch,var(--accent)_24%,var(--background)))] px-4 py-8">
@@ -522,7 +661,10 @@ export default function SurveyPage() {
               <ArrowLeftIcon className="mr-2 size-4" />
               Home
             </Button>
-            <Button variant="outline" onClick={resetSurvey}>
+            <Button variant="outline" onClick={() => setIsEditingProfile(true)} disabled={isSubmissionLocked}>
+              Edit Details
+            </Button>
+            <Button variant="outline" onClick={resetSurvey} disabled={isSubmissionLocked}>
               <RefreshCcwIcon className="mr-2 size-4" />
               Reset
             </Button>
@@ -533,6 +675,17 @@ export default function SurveyPage() {
             <Button onClick={exportCsv} disabled={answeredCount === 0}>
               <DownloadIcon className="mr-2 size-4" />
               CSV
+            </Button>
+            <Button
+              onClick={() => void submitSurvey()}
+              disabled={answeredCount < QUESTIONS.length || saveState === "saving" || isSubmissionLocked}
+            >
+              {saveState === "saving" ? (
+                <LoaderCircleIcon className="mr-2 size-4 animate-spin" />
+              ) : (
+                <DatabaseIcon className="mr-2 size-4" />
+              )}
+              Save
             </Button>
           </div>
         </div>
@@ -567,6 +720,7 @@ export default function SurveyPage() {
                       key={option.key}
                       type="button"
                       onClick={() => saveResponse(option, `manual_select_option_${index + 1}`, null)}
+                      disabled={isSubmissionLocked}
                       className={`rounded-xl border p-3 text-left transition-colors ${
                         isSaved ? "border-primary bg-primary/10" : "hover:border-primary/40"
                       }`}
@@ -581,7 +735,10 @@ export default function SurveyPage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <Button onClick={speakQuestionAndOptions} disabled={!canSpeak || isSpeaking}>
+                <Button
+                  onClick={speakQuestionAndOptions}
+                  disabled={!canSpeak || isSpeaking || isSubmissionLocked}
+                >
                   <Volume2Icon className="mr-2 size-4" />
                   {isSpeaking ? "Speaking..." : "Speak Question + Options"}
                 </Button>
@@ -591,6 +748,7 @@ export default function SurveyPage() {
                     size="sm"
                     variant={listenMode === "hi-IN" ? "default" : "ghost"}
                     onClick={() => setListenMode("hi-IN")}
+                    disabled={isSubmissionLocked}
                   >
                     Hindi
                   </Button>
@@ -599,12 +757,13 @@ export default function SurveyPage() {
                     size="sm"
                     variant={listenMode === "en-IN" ? "default" : "ghost"}
                     onClick={() => setListenMode("en-IN")}
+                    disabled={isSubmissionLocked}
                   >
                     English
                   </Button>
                 </div>
                 {!isListening ? (
-                  <Button variant="outline" onClick={startListening} disabled={!canListen}>
+                  <Button variant="outline" onClick={startListening} disabled={!canListen || isSubmissionLocked}>
                     <MicIcon className="mr-2 size-4" />
                     Say Option
                   </Button>
@@ -617,11 +776,18 @@ export default function SurveyPage() {
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <Button variant="outline" onClick={goPrevious} disabled={currentIndex <= 0}>
+                <Button
+                  variant="outline"
+                  onClick={goPrevious}
+                  disabled={currentIndex <= 0 || isSubmissionLocked}
+                >
                   <PlayIcon className="mr-2 size-4 rotate-180" />
                   Previous
                 </Button>
-                <Button onClick={goNext} disabled={currentIndex >= QUESTIONS.length - 1}>
+                <Button
+                  onClick={goNext}
+                  disabled={currentIndex >= QUESTIONS.length - 1 || isSubmissionLocked}
+                >
                   <SkipForwardIcon className="mr-2 size-4" />
                   Next
                 </Button>
@@ -630,6 +796,23 @@ export default function SurveyPage() {
           </Card>
 
           <div className="space-y-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Participant</CardTitle>
+                <CardDescription>Linked to all stored survey submissions from this browser</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm text-muted-foreground">
+                <div className="rounded-lg border bg-card/70 p-3">
+                  <p className="font-medium text-foreground">{participantProfile.name || "Name not collected"}</p>
+                  <p>{participantProfile.age} years, {participantProfile.gender}</p>
+                  <p>{[participantProfile.city, participantProfile.stateRegion, participantProfile.country].filter(Boolean).join(", ")}</p>
+                </div>
+                <Button className="w-full" variant="outline" onClick={() => setIsEditingProfile(true)} disabled={isSubmissionLocked}>
+                  Edit Details
+                </Button>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg">Progress</CardTitle>
@@ -648,6 +831,29 @@ export default function SurveyPage() {
                 ) : (
                   <p className="text-sm text-muted-foreground">No saved option for this question yet.</p>
                 )}
+                <div className="rounded-lg border bg-card/70 p-3 text-xs text-muted-foreground">
+                  {isSubmissionLocked ? (
+                    <p>This survey is locked after the first submission.</p>
+                  ) : saveState === "saved" ? (
+                    <p>Backend submission {submissionId ?? ""} saved successfully.</p>
+                  ) : saveState === "error" ? (
+                    <p className="text-destructive">{saveError}</p>
+                  ) : (
+                    <p>Complete all questions, then save the survey to the backend.</p>
+                  )}
+                </div>
+                <Button
+                  className="w-full"
+                  onClick={() => void submitSurvey()}
+                  disabled={answeredCount < QUESTIONS.length || saveState === "saving" || isSubmissionLocked}
+                >
+                  {saveState === "saving" ? (
+                    <LoaderCircleIcon className="mr-2 size-4 animate-spin" />
+                  ) : (
+                    <DatabaseIcon className="mr-2 size-4" />
+                  )}
+                  {isSubmissionLocked ? "Submission Locked" : saveState === "saved" && !hasUnsavedChanges ? "Saved to Backend" : "Save to Backend"}
+                </Button>
               </CardContent>
             </Card>
 

@@ -16,6 +16,26 @@ if (!filePath) {
 let db = null;
 let mode = "postgres";
 
+async function initEmbeddedDb() {
+  fs.mkdirSync("./.data", { recursive: true });
+
+  try {
+    const persistentDb = new PGlite("./.data/pglite");
+    await persistentDb.query("select 1");
+    db = persistentDb;
+    mode = "pglite";
+    return;
+  } catch (error) {
+    const details = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+    console.warn(`Persistent pglite startup failed; falling back to in-memory pglite. ${details}`);
+  }
+
+  const memoryDb = new PGlite();
+  await memoryDb.query("select 1");
+  db = memoryDb;
+  mode = "pglite-memory";
+}
+
 async function initDb() {
   try {
     const pool = process.env.DATABASE_URL
@@ -31,9 +51,7 @@ async function initDb() {
     db = pool;
     mode = "postgres";
   } catch {
-    fs.mkdirSync("./.data", { recursive: true });
-    db = new PGlite("./.data/pglite");
-    mode = "pglite";
+    await initEmbeddedDb();
   }
 }
 

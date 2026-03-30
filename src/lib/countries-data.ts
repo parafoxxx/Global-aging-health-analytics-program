@@ -30,7 +30,21 @@ export type CountryFactorsDoc = {
   }>;
 };
 
-const SQL_API_BASE = import.meta.env.VITE_SQL_API_BASE_URL ?? "http://localhost:4000";
+function resolveSqlApiBaseUrl() {
+  const configured = import.meta.env.VITE_SQL_API_BASE_URL?.trim();
+  if (configured) {
+    return configured;
+  }
+
+  if (typeof window !== "undefined") {
+    const { protocol, hostname } = window.location;
+    return `${protocol}//${hostname}:4000`;
+  }
+
+  return "http://localhost:4000";
+}
+
+const SQL_API_BASE = resolveSqlApiBaseUrl();
 
 async function getSqlCountries(): Promise<CountryDoc[]> {
   const res = await fetch(`${SQL_API_BASE}/api/countries`);

@@ -20,6 +20,9 @@ export function Footer() {
           <Link to="/map" className="text-muted-foreground hover:text-foreground">
             Map
           </Link>
+          <Link to="/admin" className="text-muted-foreground hover:text-foreground">
+            Admin
+          </Link>
           <a
             href="https://gateway.eu/"
             target="_blank"
@@ -38,4 +41,3 @@ export function Footer() {
     </footer>
   );
 }
-

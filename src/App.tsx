@@ -8,6 +8,7 @@ import CountryPage from "./pages/country/page.tsx";
 import SurveyPage from "./pages/survey/page.tsx";
 import DepressionTestPage from "./pages/depression-test/page.tsx";
 import FrailtyTestPage from "./pages/frailty-test/page.tsx";
+import AdminPage from "./pages/admin/page.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
               <Route path="/survey" element={<SurveyPage />} />
               <Route path="/depression-test" element={<DepressionTestPage />} />
               <Route path="/frailty-test" element={<FrailtyTestPage />} />
+              <Route path="/admin" element={<AdminPage />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

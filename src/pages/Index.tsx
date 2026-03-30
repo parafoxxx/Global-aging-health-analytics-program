@@ -202,23 +202,17 @@ export default function Index() {
             <Button variant="ghost" onClick={() => scrollTo("datasets")}>Data Sources</Button>
             <Button variant="ghost" onClick={() => scrollTo("insights")}>Insights</Button>
             <Button variant="ghost" onClick={() => scrollTo("journals")}>Journals</Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => navigate("/survey")}
-              aria-label="Voice Survey"
-              title="Voice Survey"
-            >
-              <MicIcon className="size-4" />
+            <Button variant="outline" onClick={() => navigate("/survey")}>
+              <MicIcon className="mr-2 size-4" />
+              Voice Survey
             </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => navigate("/depression-test")}
-              aria-label="Depression Test"
-              title="Depression Test"
-            >
-              <HeartPulseIcon className="size-4" />
+            <Button variant="outline" onClick={() => navigate("/depression-test")}>
+              <HeartPulseIcon className="mr-2 size-4" />
+              Depression Test
+            </Button>
+            <Button variant="outline" onClick={() => navigate("/frailty-test")}>
+              <ActivityIcon className="mr-2 size-4" />
+              Frailty Test
             </Button>
             <Button onClick={() => navigate("/map")}>
               <MapIcon className="mr-2 size-4" />
@@ -278,6 +272,16 @@ export default function Index() {
                     title="Depression Test"
                   >
                     <HeartPulseIcon className="size-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => navigate("/frailty-test")}
+                    aria-label="Frailty Test"
+                    title="Frailty Test"
+                  >
+                    <ActivityIcon className="size-4" />
                   </Button>
                 </div>
                 {suggestions.length > 0 && (
