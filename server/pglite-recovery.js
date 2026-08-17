@@ -337,9 +337,47 @@ function normalizeCountryKey(country) {
   return String(country ?? "").trim().toLowerCase();
 }
 
+function readNameField(buffer, offset, length = 64) {
+  const end = buffer.indexOf(0, offset);
+  const sliceEnd = end >= offset && end < offset + length ? end : offset + length;
+  return buffer.toString("utf8", offset, sliceEnd);
+}
+
+function resolveRelationPaths(rootDir, relationNames) {
+  const pgClassPath = path.resolve(rootDir, "base", "1", "1259");
+  if (!fs.existsSync(pgClassPath)) {
+    return new Map();
+  }
+
+  const names = new Set(relationNames);
+  const resolved = new Map();
+
+  for (const tuple of readHeapTuples(pgClassPath)) {
+    const offset = tuple[22];
+    if (!offset || offset + 92 > tuple.length) {
+      continue;
+    }
+
+    const relname = readNameField(tuple, offset + 4);
+    if (!names.has(relname) || resolved.has(relname)) {
+      continue;
+    }
+
+    const relfilenode = tuple.readUInt32LE(offset + 88);
+    const relationPath = path.resolve(rootDir, "base", "1", String(relfilenode));
+    if (relfilenode > 0 && fs.existsSync(relationPath)) {
+      resolved.set(relname, relationPath);
+    }
+  }
+
+  return resolved;
+}
+
 export function loadBrokenPgliteRecovery(rootDir = "./.data/pglite") {
-  const countriesPath = path.resolve(rootDir, "base", "1", "20193");
-  const factorsPath = path.resolve(rootDir, "base", "1", "28384");
+  const relationPaths = resolveRelationPaths(rootDir, ["countries", "country_frailty_factors"]);
+  const countriesPath = relationPaths.get("countries") ?? path.resolve(rootDir, "base", "1", "20193");
+  const factorsPath =
+    relationPaths.get("country_frailty_factors") ?? path.resolve(rootDir, "base", "1", "28384");
 
   if (!fs.existsSync(countriesPath) || !fs.existsSync(factorsPath)) {
     return null;

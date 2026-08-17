@@ -860,6 +860,63 @@ app.get("/api/assessment-submissions/export", async (req, res) => {
   }
 });
 
+app.delete("/api/admin/assessment-submissions/:submissionId", async (req, res) => {
+  try {
+    requireAdmin(req);
+
+    const submissionId = normalizeInteger(req.params.submissionId, "submissionId", 1, Number.MAX_SAFE_INTEGER);
+    const submissionResult = await query(
+      `
+      select s.id, s.participant_id, p.external_participant_id, s.assessment_type, s.ip_address, s.submitted_at
+      from assessment_submissions s
+      inner join participants p on p.id = s.participant_id
+      where s.id = $1
+      limit 1
+      `,
+      [submissionId],
+    );
+
+    if (submissionResult.rowCount === 0) {
+      res.status(404).json({ message: "Submission not found" });
+      return;
+    }
+
+    const submission = submissionResult.rows[0];
+
+    await query("delete from assessment_submissions where id = $1", [submissionId]);
+
+    const remainingResult = await query(
+      `
+      select count(*)::int as count
+      from assessment_submissions
+      where participant_id = $1
+      `,
+      [submission.participant_id],
+    );
+
+    const remainingCount = Number(remainingResult.rows[0]?.count ?? 0);
+    if (remainingCount === 0) {
+      await query("delete from participants where id = $1", [submission.participant_id]);
+    }
+
+    res.json({
+      deleted: true,
+      submission: normalizeAssessmentSubmissionRow(submission),
+      externalParticipantId: submission.external_participant_id,
+      assessmentType: submission.assessment_type,
+      removedParticipant: remainingCount === 0,
+    });
+  } catch (error) {
+    if (error instanceof HttpError) {
+      res.status(error.status).json({ message: error.message });
+      return;
+    }
+
+    console.error("DELETE /api/admin/assessment-submissions/:submissionId failed", error);
+    res.status(500).json({ message: "Failed to delete assessment submission" });
+  }
+});
+
 app.post("/api/assessment-submissions", async (req, res) => {
   try {
     const participant = normalizeParticipantSubmission(req.body?.participant ?? {});
@@ -906,43 +963,43 @@ app.post("/api/assessment-submissions", async (req, res) => {
     const participantRow = participantResult.rows[0];
 
     const existingParticipantSubmissionResult = await query(
-      `
-      select id, assessment_type, result_label, submitted_at
-      from assessment_submissions
-      where participant_id = $1 and assessment_type = $2
-      order by submitted_at desc, id desc
-      limit 1
-      `,
-      [participantRow.id, assessment.type],
-    );
-
-    if (existingParticipantSubmissionResult.rowCount > 0) {
-      res.status(409).json({
-        message: `This participant has already submitted the ${assessment.type} assessment.`,
-        existingSubmission: normalizeAssessmentSubmissionRow(existingParticipantSubmissionResult.rows[0]),
-      });
-      return;
-    }
-
-    if (clientIp) {
-      const existingIpSubmissionResult = await query(
         `
         select id, assessment_type, result_label, submitted_at
         from assessment_submissions
-        where ip_address = $1 and assessment_type = $2
+        where participant_id = $1 and assessment_type = $2
         order by submitted_at desc, id desc
         limit 1
         `,
-        [clientIp, assessment.type],
+        [participantRow.id, assessment.type],
       );
 
-      if (existingIpSubmissionResult.rowCount > 0) {
+      if (existingParticipantSubmissionResult.rowCount > 0) {
         res.status(409).json({
-          message: `This IP address has already submitted the ${assessment.type} assessment.`,
-          existingSubmission: normalizeAssessmentSubmissionRow(existingIpSubmissionResult.rows[0]),
+          message: `This participant has already submitted the ${assessment.type} assessment.`,
+          existingSubmission: normalizeAssessmentSubmissionRow(existingParticipantSubmissionResult.rows[0]),
         });
         return;
       }
+
+      if (clientIp) {
+        const existingIpSubmissionResult = await query(
+          `
+          select id, assessment_type, result_label, submitted_at
+          from assessment_submissions
+          where ip_address = $1 and assessment_type = $2
+          order by submitted_at desc, id desc
+          limit 1
+          `,
+          [clientIp, assessment.type],
+        );
+
+        if (existingIpSubmissionResult.rowCount > 0) {
+          res.status(409).json({
+            message: `This IP address has already submitted the ${assessment.type} assessment.`,
+            existingSubmission: normalizeAssessmentSubmissionRow(existingIpSubmissionResult.rows[0]),
+          });
+          return;
+        }
     }
 
     const submissionResult = await query(
@@ -1076,6 +1133,32 @@ app.post("/api/transcriptions", async (req, res) => {
 });
 
 await initDb();
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`[sql-api] listening on http://localhost:${PORT}`);
+});
+
+server.on("error", async (error) => {
+  if (error?.code !== "EADDRINUSE") {
+    console.error("[sql-api] server failed to start", error);
+    process.exitCode = 1;
+    return;
+  }
+
+  try {
+    const response = await fetch(`http://127.0.0.1:${PORT}/api/health`);
+    const health = await response.json().catch(() => null);
+
+    if (response.ok && health?.ok) {
+      console.warn(
+        `[sql-api] port ${PORT} is already in use by a healthy SQL API (${health.mode}). Reusing it for this dev session.`,
+      );
+      setInterval(() => {}, 60 * 60 * 1000);
+      return;
+    }
+  } catch {
+    // The port is occupied, but it is not responding as this API.
+  }
+
+  console.error(`[sql-api] port ${PORT} is already in use. Stop that process or set SQL_API_PORT to a free port.`);
+  process.exitCode = 1;
 });

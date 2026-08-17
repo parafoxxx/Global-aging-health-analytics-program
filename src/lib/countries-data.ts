@@ -71,6 +71,8 @@ export function useCountriesData() {
     queryKey: ["sql-countries"],
     queryFn: getSqlCountries,
     staleTime: 60_000,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
   });
 
   return {

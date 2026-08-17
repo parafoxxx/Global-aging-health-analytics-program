@@ -138,6 +138,8 @@ export default function Index() {
   const [searchQuery, setSearchQuery] = useState("");
   const [news, setNews] = useState<LiveNewsItem[]>(() => FALLBACK_NEWS);
   const [isNewsLoading, setIsNewsLoading] = useState(false);
+  const isCountriesLoading = countriesQuery.isLoading;
+  const countriesError = countriesQuery.isError ? "Country data is temporarily unavailable." : null;
 
   const summary = useMemo(() => {
     if (!countries || countries.length === 0) {
@@ -318,9 +320,21 @@ export default function Index() {
 
         <section className="mx-auto grid w-full max-w-6xl gap-4 px-6 py-10 md:grid-cols-3">
           {[
-            { label: "Countries", value: summary.countriesCount.toLocaleString(), icon: GlobeIcon },
-            { label: "Participants", value: summary.participants.toLocaleString(), icon: UsersIcon },
-            { label: "Avg Frailty", value: `${summary.avgFrailty.toFixed(1)}%`, icon: ActivityIcon },
+            {
+              label: "Countries",
+              value: isCountriesLoading ? "Loading..." : summary.countriesCount.toLocaleString(),
+              icon: GlobeIcon,
+            },
+            {
+              label: "Participants",
+              value: isCountriesLoading ? "Loading..." : summary.participants.toLocaleString(),
+              icon: UsersIcon,
+            },
+            {
+              label: "Avg Frailty",
+              value: isCountriesLoading ? "Loading..." : `${summary.avgFrailty.toFixed(1)}%`,
+              icon: ActivityIcon,
+            },
           ].map((item) => (
             <Card key={item.label}>
               <CardContent className="flex items-center justify-between p-5">
@@ -335,6 +349,13 @@ export default function Index() {
             </Card>
           ))}
         </section>
+        {countriesError ? (
+          <section className="mx-auto w-full max-w-6xl px-6 pb-2">
+            <div className="rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+              {countriesError}
+            </div>
+          </section>
+        ) : null}
 
         <section id="datasets" className="border-y bg-accent/25">
           <div className="mx-auto w-full max-w-6xl px-6 py-16">

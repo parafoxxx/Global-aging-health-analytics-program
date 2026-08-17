@@ -198,7 +198,6 @@ export default function DepressionTestPage() {
       setHasUnsavedChanges(false);
     } catch (error) {
       if (error instanceof AssessmentApiError && error.status === 409) {
-        setShowResult(false);
         await submissionStatusQuery.refetch();
       }
       setSaveState("error");
