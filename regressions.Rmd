@@ -1,0 +1,2482 @@
+---
+title: "BSE658 — every sample-question answer, Modules 3–6"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    df_print: default
+---
+
+```{r setup, include=FALSE}
+# Paths in the answers are relative to the course folder ("D:/New folder (5)"),
+# e.g. "Module 4/Diet_R.csv" and "RT dataset/BSE658_rt_experiment.csv".
+knitr::opts_knit$set(root.dir = normalizePath(".."))
+knitr::opts_chunk$set(eval = TRUE, error = TRUE, message = FALSE, warning = FALSE,
+                      fig.width = 6, fig.height = 4)
+library(car); library(lsr); library(pwr)   # packages used throughout the answers
+```
+
+# How to use this file
+
+**Search it with Ctrl+F** (in RStudio, or in the knitted `.html` in a browser). Every question has:
+
+- an **ID** you can search: `M3-B1` … `M6-B5` (Part B written/R questions), `M4-A7` (MCQs), `M5-W3` (which-test quiz), `M5-ASSIGN2` (class assignment), `M6-PAST1` (Quiz 5/6), `PP-2` (past papers);
+- a **Tests:** line in plain words (search *Levene*, *Welch*, *Kruskal*, *paired*, *Fisher*, *Tukey*, *VIF*, *Cook*, *mixed model*, *power* …);
+- a **Functions:** line with the R functions used (search `leveneTest`, `oneway.test`, `pairwise.t.test`, `lmer` …);
+- a **Data:** line with the dataset (search *airquality*, *mtcars*, *PlantGrowth*, *swiss* …).
+
+The **Test finder** below lists every test with links to each question that uses it.
+
+**Running code:** each answer's code is a normal R chunk. Click the green ▶ on a chunk, or put the cursor in it and press Ctrl+Shift+Enter. Run the hidden `setup` chunk first (Ctrl+Alt+P runs everything above), so that file paths resolve from the course folder. The numbers in the `#` comments are the outputs you should get (all checked in R 4.6). *Knit* builds a searchable HTML with the real output under every chunk; a chunk that fails shows its error instead of stopping the knit.
+
+
+# Test finder (test → questions)
+
+| Test / topic | Questions |
+|---|---|
+| t-test | [M4-B1](#m4-b1), [M4-B2](#m4-b2), [M4-B4](#m4-b4), [M4-A11](#m4-a11), [M5-B1](#m5-b1), [M5-B2](#m5-b2), [M5-ASSIGN1](#m5-assign1), [M5-ASSIGN2](#m5-assign2), [M5-ASSIGN3](#m5-assign3), [M5-A15](#m5-a15), [M5-A16](#m5-a16), [M6-B1](#m6-b1), [M6-PAST1](#m6-past1), [M6-W4](#m6-w4), [PP-2](#pp-2) |
+| one-sample t-test | [M4-B1](#m4-b1), [M4-B2](#m4-b2), [M4-B4](#m4-b4), [M4-A11](#m4-a11), [M5-ASSIGN1](#m5-assign1), [PP-2](#pp-2) |
+| paired t-test | [M5-B2](#m5-b2), [M5-B5](#m5-b5), [M5-ASSIGN3](#m5-assign3), [M5-A16](#m5-a16), [M5-W1](#m5-w1), [M5-W9](#m5-w9), [PP-2](#pp-2) |
+| Student t-test (equal variances) | [M5-B1](#m5-b1), [M5-ASSIGN2](#m5-assign2), [M5-A15](#m5-a15), [M5-A17](#m5-a17), [M5-W6](#m5-w6), [M5-W8](#m5-w8), [PP-4](#pp-4) |
+| Welch (t-test or ANOVA) | [M5-B1](#m5-b1), [M5-B2](#m5-b2), [M5-ASSIGN2](#m5-assign2), [M5-ASSIGN3](#m5-assign3), [M5-A14](#m5-a14), [M5-A15](#m5-a15), [M5-A16](#m5-a16), [M5-A17](#m5-a17), [M5-W3](#m5-w3), [M5-W6](#m5-w6), [M5-W9](#m5-w9), [M6-B1](#m6-b1), [M6-PAST1](#m6-past1), [M6-A7](#m6-a7), [M6-W1](#m6-w1), [M6-W2](#m6-w2), [M6-W3](#m6-w3), [M6-W7](#m6-w7), [PP-1](#pp-1), [PP-2](#pp-2), [PP-4](#pp-4) |
+| lsr t-test functions | [M4-B2](#m4-b2) |
+| Wilcoxon / Mann-Whitney (non-parametric) | [M4-B1](#m4-b1), [M4-B4](#m4-b4), [M4-A13](#m4-a13), [M5-B1](#m5-b1), [M5-A18](#m5-a18), [M5-W7](#m5-w7), [M5-W8](#m5-w8), [M5-W9](#m5-w9), [PP-2](#pp-2) |
+| z-test | [M4-B2](#m4-b2), [M4-B3](#m4-b3), [M4-A7](#m4-a7), [M4-A10](#m4-a10), [M4-A15](#m4-a15), [M5-W7](#m5-w7) |
+| Shapiro-Wilk normality test | [M3-A17](#m3-a17), [M4-B1](#m4-b1), [M4-B4](#m4-b4), [M4-A13](#m4-a13), [M5-B1](#m5-b1), [M5-B2](#m5-b2), [M5-ASSIGN2](#m5-assign2), [M6-B1](#m6-b1), [M6-B2](#m6-b2), [M6-B3](#m6-b3), [M6-B5](#m6-b5), [M6-PAST1](#m6-past1), [M6-PAST2](#m6-past2), [M6-W2](#m6-w2), [M6-W3](#m6-w3), [M6-W12](#m6-w12), [PP-2](#pp-2), [PP-3](#pp-3) |
+| QQ plot | [M3-A17](#m3-a17), [M4-B1](#m4-b1), [M4-B4](#m4-b4), [M4-A13](#m4-a13), [M6-B1](#m6-b1), [M6-PAST1](#m6-past1), [M6-PAST2](#m6-past2) |
+| Levene's test (homogeneity of variance) | [M5-B1](#m5-b1), [M5-ASSIGN2](#m5-assign2), [M6-B1](#m6-b1), [M6-B2](#m6-b2), [M6-PAST1](#m6-past1), [M6-A7](#m6-a7), [M6-W1](#m6-w1), [M6-W2](#m6-w2), [PP-2](#pp-2) |
+| ANOVA | [M6-B1](#m6-b1), [M6-B2](#m6-b2), [M6-B4](#m6-b4), [M6-B5](#m6-b5), [M6-PAST1](#m6-past1), [M6-A1](#m6-a1), [M6-A2](#m6-a2), [M6-A3](#m6-a3), [M6-A4](#m6-a4), [M6-A6](#m6-a6), [M6-A7](#m6-a7), [M6-A8](#m6-a8), [M6-A9](#m6-a9), [M6-A10](#m6-a10), [M6-A11](#m6-a11), [M6-A20](#m6-a20), [M6-W1](#m6-w1), [M6-W2](#m6-w2), [M6-W3](#m6-w3), [M6-W4](#m6-w4), [M6-W5](#m6-w5), [M6-W6](#m6-w6), [M6-W10](#m6-w10), [M6-W12](#m6-w12), [PP-2](#pp-2) |
+| Welch ANOVA | [M6-B1](#m6-b1), [M6-PAST1](#m6-past1), [M6-A7](#m6-a7), [M6-W2](#m6-w2), [PP-2](#pp-2) |
+| Tukey HSD post hoc | [M6-B2](#m6-b2), [M6-B3](#m6-b3), [M6-B4](#m6-b4), [M6-PAST1](#m6-past1), [M6-PAST2](#m6-past2), [M6-A3](#m6-a3), [M6-W1](#m6-w1), [M6-W4](#m6-w4), [M6-W7](#m6-w7), [M6-W12](#m6-w12), [PP-2](#pp-2) |
+| post hoc / multiple comparisons (Holm, Bonferroni) | [M6-B1](#m6-b1), [M6-B4](#m6-b4), [M6-PAST1](#m6-past1), [M6-A5](#m6-a5), [M6-W1](#m6-w1), [M6-W2](#m6-w2) |
+| Kruskal-Wallis | [M6-B1](#m6-b1), [M6-PAST1](#m6-past1), [M6-A7](#m6-a7), [M6-W1](#m6-w1), [M6-W2](#m6-w2), [M6-W3](#m6-w3), [M6-W4](#m6-w4), [M6-W6](#m6-w6), [M6-W8](#m6-w8), [PP-2](#pp-2) |
+| interaction | [M6-B2](#m6-b2), [M6-A10](#m6-a10), [M6-A11](#m6-a11), [M6-W5](#m6-w5) |
+| eta squared (effect size) | [M6-B1](#m6-b1), [M6-B2](#m6-b2), [M6-B4](#m6-b4), [M6-PAST1](#m6-past1), [M6-A2](#m6-a2), [M6-A6](#m6-a6), [PP-2](#pp-2) |
+| Cohen's d (effect size) | [M4-B1](#m4-b1), [M4-B2](#m4-b2), [M5-B1](#m5-b1), [M5-B2](#m5-b2), [M5-ASSIGN1](#m5-assign1), [M5-ASSIGN3](#m5-assign3), [PP-2](#pp-2) |
+| Cramer's V | [M5-B3](#m5-b3), [M5-ASSIGN5](#m5-assign5) |
+| chi-square test | [M5-B3](#m5-b3), [M5-B4](#m5-b4), [M5-B5](#m5-b5), [M5-ASSIGN4](#m5-assign4), [M5-ASSIGN5](#m5-assign5), [M5-ASSIGN6](#m5-assign6), [M5-A1](#m5-a1), [M5-A2](#m5-a2), [M5-A3](#m5-a3), [M5-A4](#m5-a4), [M5-A5](#m5-a5), [M5-A6](#m5-a6), [M5-A7](#m5-a7), [M5-A8](#m5-a8), [M5-A9](#m5-a9), [M5-A12](#m5-a12), [M5-A13](#m5-a13), [M5-W1](#m5-w1), [M5-W2](#m5-w2), [M5-W3](#m5-w3), [M5-W4](#m5-w4), [M5-W5](#m5-w5), [M5-W6](#m5-w6), [M5-W8](#m5-w8), [M5-W10](#m5-w10), [M6-B1](#m6-b1), [M6-B3](#m6-b3), [M6-B5](#m6-b5), [M6-PAST1](#m6-past1), [M6-PAST2](#m6-past2), [M6-A7](#m6-a7), [M6-W5](#m6-w5), [M6-W9](#m6-w9), [PP-1](#pp-1), [PP-2](#pp-2), [PP-4](#pp-4) |
+| chi-square goodness of fit | [M5-B3](#m5-b3), [M5-B5](#m5-b5), [M5-ASSIGN4](#m5-assign4), [M5-ASSIGN5](#m5-assign5), [M5-A2](#m5-a2), [M5-A5](#m5-a5), [M5-A6](#m5-a6), [M5-W2](#m5-w2), [M5-W3](#m5-w3), [M5-W8](#m5-w8), [M5-W10](#m5-w10) |
+| Fisher's exact test | [M5-ASSIGN5](#m5-assign5), [M5-A7](#m5-a7), [M5-A8](#m5-a8), [M5-A9](#m5-a9), [M5-A18](#m5-a18), [M5-W4](#m5-w4), [M5-W5](#m5-w5), [M5-W10](#m5-w10), [PP-4](#pp-4) |
+| McNemar test | [M5-B4](#m5-b4), [M5-ASSIGN6](#m5-assign6), [M5-A7](#m5-a7), [M5-A10](#m5-a10), [M5-A18](#m5-a18), [M5-W2](#m5-w2), [M5-W3](#m5-w3), [M5-W4](#m5-w4), [M5-W5](#m5-w5), [M5-W9](#m5-w9), [PP-1](#pp-1), [PP-4](#pp-4) |
+| expected counts | [M5-B3](#m5-b3), [M5-B5](#m5-b5), [M5-ASSIGN4](#m5-assign4), [M5-ASSIGN5](#m5-assign5), [M5-A3](#m5-a3), [M5-A4](#m5-a4), [M5-A5](#m5-a5), [M5-A7](#m5-a7), [M5-A8](#m5-a8), [M5-A10](#m5-a10), [M5-W4](#m5-w4), [PP-4](#pp-4) |
+| correlation (Pearson / Spearman) | [M3-B2](#m3-b2), [M3-B4](#m3-b4), [M3-B5](#m3-b5), [M3-A7](#m3-a7), [M3-A8](#m3-a8), [M3-A9](#m3-a9), [M5-B2](#m5-b2), [M6-B5](#m6-b5), [M6-A13](#m6-a13), [M6-W3](#m6-w3), [M6-W11](#m6-w11), [PP-1](#pp-1) |
+| linear regression (lm) | [M6-B3](#m6-b3), [M6-B4](#m6-b4), [M6-B5](#m6-b5), [M6-PAST2](#m6-past2), [M6-A12](#m6-a12), [M6-A14](#m6-a14), [M6-A16](#m6-a16), [M6-A18](#m6-a18), [M6-A20](#m6-a20), [M6-W4](#m6-w4), [M6-W6](#m6-w6), [M6-W10](#m6-w10), [M6-W11](#m6-w11), [PP-3](#pp-3) |
+| predict() | [M6-B4](#m6-b4) |
+| heteroscedasticity test (ncvTest) | [M6-B3](#m6-b3), [M6-PAST2](#m6-past2), [M6-W9](#m6-w9), [PP-3](#pp-3) |
+| VIF / multicollinearity | [M6-B3](#m6-b3), [M6-PAST2](#m6-past2), [M6-A16](#m6-a16), [M6-W8](#m6-w8), [PP-3](#pp-3) |
+| Cook's distance / influential points | [M6-B3](#m6-b3), [M6-PAST2](#m6-past2), [M6-A17](#m6-a17) |
+| linearity check | [M6-B3](#m6-b3), [M6-PAST2](#m6-past2), [M6-A16](#m6-a16), [M6-W7](#m6-w7), [PP-3](#pp-3) |
+| model selection (step, AIC) | [M6-W12](#m6-w12) |
+| categorical predictors / dummy coding | [M6-B4](#m6-b4) |
+| linear mixed model (lmer) | [M6-B3](#m6-b3), [M6-B5](#m6-b5), [M6-PAST2](#m6-past2), [M6-A19](#m6-a19), [M6-W6](#m6-w6), [M6-W10](#m6-w10), [M6-W11](#m6-w11) |
+| REML vs ML | [M6-B5](#m6-b5), [M6-A20](#m6-a20) |
+| singular fit | [M6-B5](#m6-b5), [M6-W11](#m6-w11) |
+| transformation (log / sqrt) | [M3-B2](#m3-b2), [M6-B2](#m6-b2), [M6-B3](#m6-b3), [M6-W7](#m6-w7), [M6-W8](#m6-w8), [M6-W9](#m6-w9) |
+| binomial distribution | [M3-B3](#m3-b3), [M3-A11](#m3-a11), [M4-B5](#m4-b5), [M5-ASSIGN6](#m5-assign6), [PP-1](#pp-1) |
+| normal distribution | [M3-B3](#m3-b3), [M3-A12](#m3-a12), [M4-B1](#m4-b1), [M4-B3](#m4-b3), [M4-B4](#m4-b4), [M6-PAST1](#m6-past1) |
+| t distribution (pt / qt) | [M4-B2](#m4-b2), [M4-A12](#m4-a12), [M4-A17](#m4-a17), [M5-B5](#m5-b5) |
+| F distribution (pf / qf) | [M6-A2](#m6-a2) |
+| confidence interval | [M4-B1](#m4-b1), [M4-B2](#m4-b2), [M4-B4](#m4-b4), [M4-B5](#m4-b5), [M4-A6](#m4-a6), [M4-A7](#m4-a7), [M4-A11](#m4-a11), [M4-A12](#m4-a12), [M4-A16](#m4-a16), [M4-A17](#m4-a17), [M5-B1](#m5-b1), [M5-B2](#m5-b2), [M5-B5](#m5-b5), [M5-ASSIGN1](#m5-assign1), [M5-ASSIGN2](#m5-assign2), [M5-ASSIGN3](#m5-assign3), [M6-PAST1](#m6-past1), [M6-PAST2](#m6-past2), [PP-2](#pp-2), [PP-4](#pp-4) |
+| power / sample size | [M4-B1](#m4-b1), [M4-B2](#m4-b2), [M4-B5](#m4-b5), [M4-A8](#m4-a8), [M4-A9](#m4-a9), [M4-A15](#m4-a15), [M5-B1](#m5-b1), [M5-B2](#m5-b2), [M6-B3](#m6-b3), [M6-A14](#m6-a14), [M6-W7](#m6-w7), [M6-W9](#m6-w9), [PP-1](#pp-1), [PP-2](#pp-2) |
+| standard error | [M4-B2](#m4-b2), [M4-B3](#m4-b3), [M4-A3](#m4-a3), [M4-A4](#m4-a4), [M5-B5](#m5-b5), [M5-ASSIGN3](#m5-assign3), [M5-A17](#m5-a17), [M6-B5](#m6-b5), [M6-PAST2](#m6-past2), [M6-A17](#m6-a17), [M6-A20](#m6-a20), [PP-1](#pp-1) |
+| SD / variance | [M3-B1](#m3-b1), [M3-B2](#m3-b2), [M3-B4](#m3-b4), [M3-B5](#m3-b5), [M3-A5](#m3-a5), [M4-B1](#m4-b1), [M4-B2](#m4-b2), [M5-B1](#m5-b1), [M5-B2](#m5-b2), [M5-ASSIGN2](#m5-assign2), [M5-ASSIGN3](#m5-assign3), [M5-A14](#m5-a14), [M5-A15](#m5-a15), [M6-B1](#m6-b1), [M6-B2](#m6-b2), [M6-B3](#m6-b3), [M6-B4](#m6-b4), [M6-PAST1](#m6-past1), [M6-PAST2](#m6-past2), [M6-A6](#m6-a6), [M6-A7](#m6-a7), [M6-A12](#m6-a12), [M6-W2](#m6-w2), [PP-1](#pp-1), [PP-2](#pp-2), [PP-3](#pp-3) |
+| IQR / quartiles / outliers | [M3-B1](#m3-b1), [M3-B4](#m3-b4), [M3-A4](#m3-a4), [M3-A8](#m3-a8), [M6-B5](#m6-b5), [M6-A17](#m6-a17) |
+| mean / median / mode | [M3-B1](#m3-b1), [M3-B4](#m3-b4), [M3-B5](#m3-b5), [M3-A3](#m3-a3), [M3-A10](#m3-a10), [M3-A14](#m3-a14), [M4-B1](#m4-b1), [M4-B2](#m4-b2), [M4-B4](#m4-b4), [M5-B1](#m5-b1), [M5-B2](#m5-b2), [M5-ASSIGN1](#m5-assign1), [M5-ASSIGN2](#m5-assign2), [M5-ASSIGN3](#m5-assign3), [M6-B1](#m6-b1), [M6-PAST1](#m6-past1), [PP-2](#pp-2) |
+| z-scores / standardising | [M3-B2](#m3-b2), [M4-B2](#m4-b2) |
+| skewness | [M3-B1](#m3-b1), [M3-B5](#m3-b5), [M3-A3](#m3-a3), [M4-B4](#m4-b4), [M4-A4](#m4-a4), [M4-A10](#m4-a10), [M5-W8](#m5-w8), [M6-B1](#m6-b1), [M6-W3](#m6-w3) |
+| ggplot | [M3-B1](#m3-b1), [M3-B6](#m3-b6), [M3-A15](#m3-a15) |
+| boxplot | [M3-B1](#m3-b1), [M3-B6](#m3-b6), [M5-B1](#m5-b1), [M5-ASSIGN2](#m5-assign2), [M6-B1](#m6-b1), [M6-PAST1](#m6-past1) |
+| histogram | [M3-B1](#m3-b1), [M3-B6](#m3-b6), [M3-A15](#m3-a15), [M3-A17](#m3-a17) |
+| missing values (NA) | [M3-B5](#m3-b5), [M3-A10](#m3-a10), [M4-B1](#m4-b1), [M4-B4](#m4-b4), [M4-A8](#m4-a8), [M5-A14](#m5-a14), [M6-B1](#m6-b1) |
+| dplyr / tidyverse | [M3-B5](#m3-b5), [M4-B1](#m4-b1) |
+| group summaries | [M3-A14](#m3-a14), [M5-B1](#m5-b1), [M5-ASSIGN2](#m5-assign2), [M6-B1](#m6-b1), [M6-B2](#m6-b2), [M6-B5](#m6-b5), [M6-PAST1](#m6-past1) |
+| contingency table | [M5-B3](#m5-b3), [M5-B4](#m5-b4), [M5-ASSIGN6](#m5-assign6), [M5-A1](#m5-a1), [M5-A3](#m5-a3), [M5-A7](#m5-a7), [M5-A9](#m5-a9), [M5-W4](#m5-w4), [M6-B5](#m6-b5), [M6-A5](#m6-a5) |
+| proportions | [M3-B3](#m3-b3), [M4-B5](#m4-b5), [M5-B4](#m5-b4), [M5-ASSIGN4](#m5-assign4), [M5-ASSIGN5](#m5-assign5), [M5-A2](#m5-a2), [M5-A5](#m5-a5), [M5-W2](#m5-w2), [M6-B4](#m6-b4), [M6-A6](#m6-a6), [PP-4](#pp-4) |
+| sampling distribution / CLT | [M3-A17](#m3-a17), [M4-B4](#m4-b4), [M4-A4](#m4-a4) |
+| simulation | [M4-B2](#m4-b2) |
+
+## Dataset finder
+
+| Dataset | Questions |
+|---|---|
+| `airquality` | [M3-B5](#m3-b5), [M4-B4](#m4-b4), [M6-B1](#m6-b1), [M6-B3](#m6-b3) |
+| `BSE658_rt_experiment` | [M6-B5](#m6-b5) |
+| `chickwts` | [M5-B1](#m5-b1), [M6-B4](#m6-b4) |
+| `Diet_R` | [M4-B1](#m4-b1) |
+| `iris` | [M3-A14](#m3-a14) |
+| `mtcars` | [M3-A7](#m3-a7), [M5-ASSIGN1](#m5-assign1), [M5-ASSIGN2](#m5-assign2), [M5-ASSIGN4](#m5-assign4), [M5-ASSIGN5](#m5-assign5), [M5-A5](#m5-a5), [M5-A15](#m5-a15), [M6-A12](#m6-a12), [M6-A14](#m6-a14), [M6-A16](#m6-a16) |
+| `PlantGrowth` | [M6-PAST1](#m6-past1), [M6-A3](#m6-a3), [M6-A18](#m6-a18), [PP-2](#pp-2) |
+| `sleep` | [M5-ASSIGN3](#m5-assign3), [M5-A16](#m5-a16), [PP-2](#pp-2) |
+| `swiss` | [M6-PAST2](#m6-past2), [PP-3](#pp-3) |
+| `ToothGrowth` | [M4-A11](#m4-a11), [M6-A9](#m6-a9) |
+| `UCBAdmissions` | [M5-B3](#m5-b3) |
+| `warpbreaks` | [M6-B2](#m6-b2), [M6-A11](#m6-a11) |
+
+# Module 3 · Descriptives, correlation, plots, distributions
+
+
+## M3 · Part B · Written and R questions (model answers)
+
+
+### M3-B1 · Centre, spread and skew [16 marks] {#m3-b1}
+
+**Tests:** SD / variance; IQR / quartiles / outliers; mean / median / mode; skewness; ggplot; boxplot; histogram  
+**Functions:** `diff()`, `IQR()`, `mean()`, `median()`, `quantile()`, `range()`, `sd()`, `table()`, `var()`, `which.max()`
+
+**Question**
+
+Eight participants took the following times (minutes) to solve a puzzle: `12, 15, 15, 18, 20, 22, 25, 61`.
+
+(a) Calculate the mean, median and mode. [3]
+(b) Calculate the range, sample variance and sample standard deviation. Show your working or the R commands used. [4]
+(c) Find Q1, Q3 and the IQR, and the 1.5 × IQR fences. Is any value an outlier? [4]
+(d) State the direction of skew. Which measures of centre and spread would you report, and why? [3]
+(e) Suggest one plot, with its ggplot2 geom, that reveals both the skew and the unusual value. [2]
+
+**Model answer (code + interpretation)**
+
+```{r}
+x <- c(12, 15, 15, 18, 20, 22, 25, 61)
+mean(x); median(x); names(which.max(table(x)))   # 23.5   19   "15"
+diff(range(x)); var(x); sd(x)                     # 49   247.14   15.72
+quantile(x); IQR(x)                               # Q1 = 15, Q3 = 22.75, IQR = 7.75
+quantile(x, .25) - 1.5 * IQR(x); quantile(x, .75) + 1.5 * IQR(x)   # 3.375   34.375
+```
+
+**(a)** Mean = 188/8 = 23.5; median = (18 + 20)/2 = 19; mode = 15. **(b)** Range = 61 − 12 = 49. Σ(x − x̄)² = 1730, so s² = 1730/7 = 247.14 and s = 15.72. **(c)** Q1 = 15, Q3 = 22.75, IQR = 7.75; the fences are 3.375 and 34.375, so 61 is an outlier. **(d)** Right (positive) skew: the mean is pulled 4.5 above the median by 61. Report the **median and IQR**, because they are robust to the outlier, while the mean and SD are inflated by it. **(e)** A boxplot (`geom_boxplot()`) shows the long upper whisker side and plots 61 as a point. A histogram or dot plot is also acceptable.
+
+> Marking: 1 per statistic in (a); 1 each for range, s², s and 1 for showing n − 1 in (b); 1 each for Q1/Q3, IQR, fences and the outlier statement in (c); 1 for direction, 2 for the choice with its reason in (d); 1 plot + 1 geom in (e).
+
+
+### M3-B2 · Standard scores and changing units [10 marks] {#m3-b2}
+
+**Tests:** correlation (Pearson / Spearman); transformation (log / sqrt); SD / variance; z-scores / standardising
+
+**Question**
+
+(a) A student scores 80 in Biology (class mean 65, SD 12) and 78 in Chemistry (class mean 70, SD 5). Calculate both z-scores. In which subject did the student do better relative to the class? [4]
+(b) Body temperatures have mean 37 °C and SD 0.4 °C. After converting to °F (F = 1.8C + 32), give the new mean, SD and variance. [4]
+(c) What happens to the correlation between temperature and heart rate after the conversion? Why? [2]
+
+**Model answer (code + interpretation)**
+
+```{r}
+(80 - 65) / 12      # z_bio  = 1.25
+(78 - 70) / 5       # z_chem = 1.60
+1.8 * 37 + 32; 1.8 * 0.4; (1.8 * 0.4)^2   # 98.6   0.72   0.5184
+```
+
+**(a)** The student did relatively better in Chemistry: 1.6 SDs above the class mean vs 1.25, even though the raw Biology score was higher. **(b)** Mean 98.6 °F, SD 0.72 °F, variance 0.518 °F². Adding a constant shifts only the mean; multiplying by 1.8 scales the mean and SD by 1.8 and the variance by 1.8². **(c)** It is unchanged. r is computed from z-scores, so it is unit-free, and a positive linear transformation doesn't change it (Quiz 2 Q5).
+
+> Marking: 1 per z, 2 for the comparison in (a); 1 each for mean, SD and variance plus 1 for the rule in (b); 1 + 1 reason in (c).
+
+
+### M3-B3 · The binomial and normal distributions [14 marks] {#m3-b3}
+
+**Tests:** binomial distribution; normal distribution; proportions  
+**Functions:** `dbinom()`, `pbinom()`, `pnorm()`, `qnorm()`, `sqrt()`
+
+**Question**
+
+Each seed germinates independently with probability 0.8. Twelve seeds are planted. Let X be the number that germinate.
+
+(a) State the distribution of X, including its parameters, and explain why a binomial model is appropriate. [3]
+(b) Write an exact expression and the R command for P(X = 10). [3]
+(c) Write an exact expression and the R command for P(X ≥ 10). [3]
+(d) Find the mean and standard deviation of X. [2]
+(e) Birth weight is Normal(3.3 kg, 0.5 kg). Using R, find the proportion of babies under 2.5 kg and the weight at the 90th percentile. [3]
+
+**Model answer (code + interpretation)**
+
+```{r}
+dbinom(10, size = 12, prob = 0.8)                     # 0.2835
+pbinom(9, size = 12, prob = 0.8, lower.tail = FALSE)  # 0.5583  (= sum(dbinom(10:12, 12, 0.8)))
+12 * 0.8; sqrt(12 * 0.8 * 0.2)                        # 9.6   1.386
+pnorm(2.5, mean = 3.3, sd = 0.5)                      # 0.0548  (z = -1.6)
+qnorm(0.90, mean = 3.3, sd = 0.5)                     # 3.94 kg
+```
+
+**(a)** X ~ Binomial(n = 12, p = 0.8): a fixed number of trials, two outcomes, a constant p and independent seeds. **(b)** P(X = 10) = C(12, 10)(0.8)¹⁰(0.2)² = 66 × 0.1074 × 0.04 = 0.2835. **(c)** P(X ≥ 10) = Σ over k = 10 to 12 of C(12, k)(0.8)ᵏ(0.2)¹²⁻ᵏ = 0.5583. The common error is `pbinom(10, ...)`, which gives P(X ≤ 10). **(d)** Mean = np = 9.6; SD = √(np(1 − p)) = 1.386. **(e)** 5.5% are under 2.5 kg; the 90th percentile is 3.94 kg.
+
+> Marking mirrors midsem Q8: 1 distribution, 2 for the conditions; expression + R + value for (b) and (c); 1 each for mean and SD; 1.5 each for the two answers in (e).
+
+
+### M3-B4 · Correlation and its interpretation [10 marks] {#m3-b4}
+
+**Tests:** correlation (Pearson / Spearman); SD / variance; IQR / quartiles / outliers; mean / median / mode  
+**Functions:** `cor()`, `mean()`, `sd()`
+
+**Question**
+
+For five participants, x = hours of practice and y = score: x = 1, 2, 3, 4, 5 and y = 2, 4, 5, 4, 5.
+
+(a) Calculate Pearson's r, showing the steps or R code. [4]
+(b) Interpret the direction and strength of the association. [2]
+(c) Across 50 towns, ice-cream sales and drowning deaths correlate at r = 0.70. Does ice cream cause drowning? Explain. [2]
+(d) Why should the scatterplot be inspected even when r is known? Refer to two features of the data. [2]
+
+**Model answer (code + interpretation)**
+
+```{r}
+x <- 1:5; y <- c(2, 4, 5, 4, 5)
+sum((x - mean(x)) * (y - mean(y)))   # 6  → cov = 6/4 = 1.5
+sd(x); sd(y)                          # 1.581   1.225
+cor(x, y)                             # 1.5 / (1.581 × 1.225) = 0.775
+```
+
+**(b)** A strong positive linear association: more practice goes with higher scores. **(c)** No. The data are observational, and a confound (hot weather) raises both ice-cream sales and swimming. Correlation shows association, not causation. **(d)** r measures only *linear* association and is sensitive to outliers. A curve (here y levels off after x = 3), a single influential point, clusters or restricted range can all give a misleading r (Anscombe's quartet, Quiz 2 Q6 and Q10).
+
+> Marking: 2 for working (deviations/covariance), 1 SDs, 1 r in (a); direction + strength in (b); "observational/confound" + example in (c); 1 per named feature in (d).
+
+
+### M3-B5 · Working with data in R [14 marks] {#m3-b5}
+
+**Tests:** correlation (Pearson / Spearman); SD / variance; mean / median / mode; skewness; missing values (NA); dplyr / tidyverse  
+**Functions:** `filter()`, `group_by()`, `is.na()`, `mean()`, `median()`, `mutate()`, `na.omit()`, `nrow()`, `sd()`, `select()`, `summarise()`  
+**Data:** airquality
+
+**Question**
+
+Use the built-in `airquality` dataset (daily New York measurements, May–September). Use tidyverse.
+
+(a) Explain why `mean(airquality$Ozone)` returns `NA`. Write corrected code, and report how many Ozone values are missing. [3]
+(b) Using one pipeline, keep July (Month 7) days with non-missing Ozone, create `Temp_C = (Temp - 32) / 1.8`, and select Day, Ozone and Temp_C. How many rows remain? [4]
+(c) Write code reporting, for each month, the number of non-missing Ozone values and the mean, median and SD of Ozone. Comment on one pattern. [4]
+(d) How many days does `cor(airquality[, c("Ozone", "Solar.R", "Temp")], use = "complete.obs")` use for the Ozone–Temp correlation, and how many with `use = "pairwise.complete.obs"`? Why do they differ? [3]
+
+**Model answer (code + interpretation)**
+
+```{r}
+library(tidyverse)
+mean(airquality$Ozone)                    # NA: any NA in the input makes the mean NA
+mean(airquality$Ozone, na.rm = TRUE)      # 42.13
+sum(is.na(airquality$Ozone))              # 37 missing (116 present)
+
+july <- airquality %>%
+  filter(Month == 7, !is.na(Ozone)) %>%
+  mutate(Temp_C = (Temp - 32) / 1.8) %>%
+  select(Day, Ozone, Temp_C)
+nrow(july)                                # 26 rows; Temp_C ranges 22.8 to 33.3
+
+airquality %>%
+  group_by(Month) %>%
+  summarise(n = sum(!is.na(Ozone)), mean = mean(Ozone, na.rm = TRUE),
+            median = median(Ozone, na.rm = TRUE), sd = sd(Ozone, na.rm = TRUE))
+#  Month  n  mean median   sd
+#      5 26  23.6     18 22.2
+#      6  9  29.4     23 18.2
+#      7 26  59.1     60 31.6
+#      8 26  60.0     52 39.7
+#      9 29  31.4     23 24.1
+
+nrow(na.omit(airquality[, c("Ozone", "Solar.R", "Temp")]))   # 111 (r = 0.699)
+nrow(na.omit(airquality[, c("Ozone", "Temp")]))              # 116 (r = 0.698)
+```
+
+**(c)** Ozone peaks in July–August (means ≈ 60) and is lowest in May; in most months the mean exceeds the median, showing right skew. June has only 9 observed days, so its summary is unreliable. **(d)** `complete.obs` deletes any row with an NA in *any* of the three columns (111 days), so 5 days lost only because Solar.R is missing are excluded. `pairwise.complete.obs` needs just Ozone and Temp for that pair (116 days, Quiz 2 Q7).
+
+> Marking: reason + code + count in (a); 1 per pipeline step (filter, mutate, select) + count in (b); code 3 + comment 1 in (c); both counts + reason in (d).
+
+
+### M3-B6 · Choosing plots [6 marks] {#m3-b6}
+
+**Tests:** ggplot; boxplot; histogram
+
+**Question**
+
+For each of the following, name an appropriate plot and give the ggplot2 geom: (a) counts of blood groups; (b) the distribution of body mass; (c) body mass compared between sexes; (d) wing length against body mass; (e) monthly case counts over two years; (f) counts of species in each habitat. [1 each]
+
+**Model answer (code + interpretation)**
+
+(a) Bar chart, `geom_bar()`. (b) Histogram, `geom_histogram()` (or `geom_density()`). (c) Boxplot with points, `geom_boxplot()` + `geom_jitter()` (or `geom_violin()`). (d) Scatterplot, `geom_point()`. (e) Line graph, `geom_line()`. (f) Grouped bar chart, `geom_bar(position = "dodge")`.
+
+> Midsem Q3 and Q10 asked exactly this: ½ for the plot, ½ for the geom. For "shows individual observations", add `geom_jitter()`.
+
+
+## M3 · Part A · MCQs with answers (+1 / −0.25)
+
+
+### M3-A1 · A study records each participant's blood group (A, B, AB or O). Which scale of measurement is this? {#m3-a1}
+
+- **A. Nominal  ← correct**
+- B. Ordinal
+- C. Interval
+- D. Ratio
+
+**Answer: A.** Categories with no natural order. Pain rated none/mild/moderate/severe would be ordinal (Quiz 1 Q7).
+
+
+### M3-A2 · Temperature in °C is best described as which scale? {#m3-a2}
+
+- A. Nominal
+- B. Ordinal
+- **C. Interval  ← correct**
+- D. Ratio
+
+**Answer: C.** Differences are meaningful, but 0 °C is not "no temperature", so ratios (20 °C is "twice" 10 °C) are meaningless. Kelvin would be ratio.
+
+
+### M3-A3 · Household incomes in a town include a few extremely high values. Which is most likely? {#m3-a3}
+
+**Tests:** mean / median / mode; skewness
+
+- A. The mean is smaller than the median
+- **B. The mean is larger than the median  ← correct**
+- C. The mean equals the median
+- D. The standard deviation is zero
+
+**Answer: B.** Right skew pulls the mean towards the long upper tail; the median resists it (midsem Q5).
+
+
+### M3-A4 · Run the following code. What does it return? {#m3-a4}
+
+**Tests:** IQR / quartiles / outliers  
+**Functions:** `IQR()`, `quantile()`
+
+```{r}
+x <- c(2, 4, 4, 5, 5, 5, 7, 8)
+IQR(x)
+```
+
+- **A. 1.5  ← correct**
+- B. 2
+- C. 3.5
+- D. 6
+
+**Answer: A.** quantile(x) gives Q1 = 4 and Q3 = 5.5 (R's default type-7 quantiles), so IQR = 1.5. Hand methods that split the data into halves can give a slightly different value; in R, report R's.
+
+```{r}
+quantile(c(2, 4, 4, 5, 5, 5, 7, 8))   # 25%: 4   75%: 5.5
+```
+
+
+### M3-A5 · Reaction times are converted from seconds to milliseconds (× 1000), and then 200 ms is subtracted from every value. What happens to the standard deviation? {#m3-a5}
+
+**Tests:** SD / variance
+
+- **A. It is multiplied by 1000  ← correct**
+- B. It is multiplied by 1000 and then reduced by 200
+- C. It is unchanged
+- D. It is multiplied by 1000²
+
+**Answer: A.** Multiplying scales the SD; adding or subtracting a constant shifts only the mean. The variance would be multiplied by 1000².
+
+
+### M3-A6 · A score has z = −2 on a test with mean 60 and SD 8. What is the raw score? {#m3-a6}
+
+- **A. 44  ← correct**
+- B. 52
+- C. 58
+- D. 76
+
+**Answer: A.** x = mean + z × SD = 60 + (−2)(8) = 44.
+
+
+### M3-A7 · Load mtcars and run `cor(mtcars$mpg, mtcars$wt)`. Which statement is best supported? {#m3-a7}
+
+**Tests:** correlation (Pearson / Spearman)  
+**Functions:** `cor()`  
+**Data:** mtcars
+
+- **A. There is a strong negative linear association (r ≈ −0.87)  ← correct**
+- B. There is a weak negative association (r ≈ −0.09)
+- C. Heavier cars cause lower fuel efficiency
+- D. There is a strong positive association
+
+**Answer: A.** r = −0.868. Correlation alone does not establish causation (option C), even when a causal story is plausible.
+
+```{r}
+cor(mtcars$mpg, mtcars$wt)   # -0.8676594
+```
+
+
+### M3-A8 · Which situation most favours Spearman's ρ over Pearson's r? {#m3-a8}
+
+**Tests:** correlation (Pearson / Spearman); IQR / quartiles / outliers
+
+- A. Both variables are normal and linearly related
+- **B. The relationship is monotonic but curved, or there is an outlier  ← correct**
+- C. Both variables are categorical with no order
+- D. You want to compare two group means
+
+**Answer: B.** Spearman correlates ranks, so it captures any monotonic relationship and resists outliers.
+
+
+### M3-A9 · Hours studied and exam grade give Pearson r = 0.909 but Spearman ρ = 1.000. What does this mean? {#m3-a9}
+
+**Tests:** correlation (Pearson / Spearman)
+
+- **A. The relationship is perfectly monotonic but not perfectly linear  ← correct**
+- B. Spearman's value must be a calculation error
+- C. ρ is always larger than r
+- D. There is no relationship
+
+**Answer: A.** More hours always meant a higher grade (ρ = 1), but the gains level off, so the points don't lie on a straight line (r < 1).
+
+
+### M3-A10 · What does `mean(c(4, NA, 6))` return in R? {#m3-a10}
+
+**Tests:** mean / median / mode; missing values (NA)
+
+- A. 5
+- **B. NA  ← correct**
+- C. 3.33
+- D. An error
+
+**Answer: B.** Any NA in the input makes the result NA. Use mean(x, na.rm = TRUE), which gives 5 (midsem Q2a).
+
+
+### M3-A11 · X ~ Binomial(10, 0.7). Which command gives P(X ≥ 8)? {#m3-a11}
+
+**Tests:** binomial distribution  
+**Functions:** `pbinom()`
+
+- A. dbinom(8, 10, 0.7)
+- B. pbinom(8, 10, 0.7)
+- **C. 1 - pbinom(7, 10, 0.7)  ← correct**
+- D. 1 - pbinom(8, 10, 0.7)
+
+**Answer: C.** pbinom(7, ...) is P(X ≤ 7), so 1 − that is P(X ≥ 8) = 0.383. Option A is P(X = 8) = 0.233; option D is P(X ≥ 9).
+
+```{r}
+1 - pbinom(7, 10, 0.7)                  # 0.3828
+pbinom(7, 10, 0.7, lower.tail = FALSE)  # same
+```
+
+
+### M3-A12 · IQ ~ Normal(100, 15). What does `pnorm(130, 100, 15, lower.tail = FALSE)` return, approximately? {#m3-a12}
+
+**Tests:** normal distribution
+
+- **A. 0.023  ← correct**
+- B. 0.977
+- C. 0.046
+- D. 0.159
+
+**Answer: A.** 130 is z = 2, so the upper tail is about 2.3%. 0.977 is the lower tail; 0.046 is both tails.
+
+
+### M3-A13 · Mutations occur at an average rate of 2 per genome. What does `dpois(0, 2)` give? {#m3-a13}
+
+- **A. P(no mutations) ≈ 0.135  ← correct**
+- B. P(at most 2 mutations)
+- C. The mean number of mutations
+- D. P(at least 1 mutation)
+
+**Answer: A.** dpois(k, λ) = e^(−λ) λ^k / k!; for k = 0 that is e^(−2) = 0.135. P(at least 1) = 1 − 0.135.
+
+
+### M3-A14 · Load iris and run `aggregate(Sepal.Length ~ Species, data = iris, FUN = median)`. Which species has the largest median sepal length? {#m3-a14}
+
+**Tests:** mean / median / mode; group summaries  
+**Functions:** `aggregate()`  
+**Data:** iris
+
+- A. setosa
+- B. versicolor
+- **C. virginica  ← correct**
+- D. All three are equal
+
+**Answer: C.** Medians are 5.0, 5.9 and 6.5 cm.
+
+```{r}
+aggregate(Sepal.Length ~ Species, data = iris, FUN = median)
+#   setosa 5.0   versicolor 5.9   virginica 6.5
+```
+
+
+### M3-A15 · Which ggplot2 geom is most appropriate for showing the distribution of a single continuous variable? {#m3-a15}
+
+**Tests:** ggplot; histogram
+
+- A. geom_bar()
+- **B. geom_histogram()  ← correct**
+- C. geom_line()
+- D. geom_point()
+
+**Answer: B.** geom_bar() counts categories; geom_line() suits time series; geom_point() needs two variables.
+
+
+### M3-A16 · P(A) = 0.3, P(B) = 0.5 and P(A and B) = 0.1. Are A and B independent? {#m3-a16}
+
+- A. Yes, because P(A and B) is smaller than P(A)
+- **B. No, because P(A)P(B) = 0.15 ≠ 0.1  ← correct**
+- C. Yes, because P(A or B) = 0.7
+- D. It cannot be decided without data
+
+**Answer: B.** Independence requires P(A and B) = P(A)P(B). Equivalently, P(A | B) = 0.1/0.5 = 0.2 ≠ P(A) = 0.3.
+
+
+### M3-A17 · shapiro.test() on 5,000 reaction times gives p = 0.0001. What is the most defensible next step? {#m3-a17}
+
+**Tests:** Shapiro-Wilk normality test; QQ plot; histogram; sampling distribution / CLT
+
+- A. Abandon all parametric tests
+- **B. Inspect the QQ plot and histogram: at this n, tiny departures are significant and t-tests are robust  ← correct**
+- C. Delete observations until p > .05
+- D. Conclude that the data are uniformly distributed
+
+**Answer: B.** With huge samples Shapiro–Wilk flags trivial departures. Judge the size of the departure visually; the CLT protects tests of means at large n.
+
+
+# Module 4 · Sampling, CLT, CIs, hypothesis testing, power, z/t-tests, Wilcoxon
+
+
+## M4 · Part B · Written and R questions (model answers)
+
+
+### M4-B1 · Diet data: one-sample tests and assumptions [16 marks] {#m4-b1}
+
+**Tests:** t-test; one-sample t-test; Wilcoxon / Mann-Whitney (non-parametric); Shapiro-Wilk normality test; QQ plot; Cohen's d (effect size); normal distribution; confidence interval; power / sample size; SD / variance; mean / median / mode; missing values (NA); dplyr / tidyverse  
+**Functions:** `filter()`, `group_by()`, `mean()`, `mutate()`, `n()`, `pwr.t.test()`, `qqnorm()`, `read_csv()`, `sd()`, `shapiro.test()`, `summarise()`, `t.test()`, `wilcox.test()`  
+**Data:** Diet_R
+
+**Question**
+
+Load `Module 4\Diet_R.csv` (78 people on one of three diets for 6 weeks). Create `weightloss = pre.weight - weight6weeks`.
+
+(a) Using one pipeline, report n, mean and SD of weight loss for each diet, and the overall mean. [3]
+(b) Perform a one-sample t-test of whether Diet 3's mean weight loss differs from the overall mean. Report t, df, p, the 95% CI and Cohen's d. [4]
+(c) Check the normality of Diet 3's weight loss with a QQ plot and the Shapiro–Wilk test. Is the t-test justified? [2]
+(d) Test whether Diet 1 produces any weight loss at all (μ = 0), using a t-test and its non-parametric alternative. [3]
+(e) Using half the effect size observed in (b), estimate the power of that test with 27 participants at α = 0.05. [2]
+(f) Write one correct sentence interpreting the p-value from (b), and one interpreting the CI. [2]
+
+**Model answer (code + interpretation)**
+
+```{r}
+library(tidyverse); library(lsr); library(pwr)
+diet <- read_csv("Module 4/Diet_R.csv") %>% mutate(weightloss = pre.weight - weight6weeks)
+diet %>% group_by(Diet) %>% summarise(n = n(), mean = mean(weightloss), sd = sd(weightloss))
+#  Diet  n  mean   sd
+#     1 24  3.30 2.24
+#     2 27  3.03 2.52
+#     3 27  5.15 2.40
+mu0 <- mean(diet$weightloss)                        # 3.845
+d3 <- filter(diet, Diet == 3)$weightloss
+t.test(d3, mu = mu0)          # t = 2.8269, df = 26, p-value = 0.008921, 95% CI 4.20 6.10
+(mean(d3) - mu0) / sd(d3)      # Cohen's d = 0.544
+qqnorm(d3); shapiro.test(d3)            # W p = 0.372
+d1 <- filter(diet, Diet == 1)$weightloss
+t.test(d1, mu = 0)             # t = 7.2168, df = 23, p-value = 2.4e-07, CI 2.35 4.25
+wilcox.test(d1, mu = 0)        # V = 299, p = 2.4e-07 (exact; older R: 2.2e-05 with a ties warning)
+pwr.t.test(d = 0.544 / 2, n = 27, sig.level = .05, type = "one.sample")   # power = 0.275
+```
+
+**(b)** H0: μ_Diet3 = 3.845; H1: μ_Diet3 ≠ 3.845. Diet 3 lost 5.15 kg on average, significantly more than the overall 3.85 kg: t(26) = 2.83, p = .009, 95% CI [4.20, 6.10], d = 0.54 (medium). **(c)** The points follow the QQ line and Shapiro p = .37, so there is no evidence against normality and the t-test is justified. **(d)** Diet 1 lost 3.3 kg: t(23) = 7.22, p < .001; the Wilcoxon signed-rank test agrees (V = 299, p < .001). **(e)** Power = 0.28: a 72% chance of missing an effect of d = 0.27 with n = 27. **(f)** "If Diet 3's true mean equalled the overall mean, a difference at least this large would occur in about 0.9% of samples." "We are 95% confident that Diet 3's population mean weight loss lies between 4.2 and 6.1 kg." (Not "95% of people lose 4.2–6.1 kg", and not "H0 is true 0.9% of the time", which are the notebook's errors.)
+
+> Marking: code + table + overall mean (a); 1 each for t/df, p, CI, d (b); plot/test + verdict (c); 1.5 per test (d); code + value (e); 1 per correct sentence (f).
+
+
+### M4-B2 · A t-test by hand [12 marks] {#m4-b2}
+
+**Tests:** t-test; one-sample t-test; lsr t-test functions; z-test; Cohen's d (effect size); t distribution (pt / qt); confidence interval; power / sample size; standard error; SD / variance; mean / median / mode; z-scores / standardising; simulation  
+**Functions:** `mean()`, `oneSampleTTest()`, `pwr.t.test()`, `qt()`, `rnorm()`, `sd()`, `set.seed()`, `sqrt()`, `t.test()`
+
+**Question**
+
+A manufacturer claims its batteries last 50 hours on average. A sample of 25 batteries has mean 48.2 h and SD 5 h.
+
+(a) State the null and alternative hypotheses for a two-sided test. [2]
+(b) Calculate the standard error, the t statistic and its degrees of freedom. [3]
+(c) Find the p-value and the critical value using R, and make a decision at α = 0.05. [2]
+(d) Calculate the 95% CI for the mean. Does it agree with your decision? [3]
+(e) A consumer group says "the result proves the claim is true". Comment. [2]
+
+**Model answer (code + interpretation)**
+
+**Why a t-test?** We are comparing one sample mean with a claimed value (μ₀ = 50) and the population SD is unknown (5 h is the *sample* SD). So it is a one-sample t-test, not a z-test. We have only summary statistics, so the test is computed from the formula in R.
+
+```{r}
+# ---- Given ----
+n     <- 25      # sample size
+xbar  <- 48.2    # sample mean (hours)
+s     <- 5       # sample SD (hours)
+mu0   <- 50      # claimed mean under H0
+alpha <- 0.05
+
+# ---- (b) standard error, t, df ----
+se     <- s / sqrt(n)              # 5 / 5 = 1
+t_stat <- (xbar - mu0) / se        # (48.2 - 50) / 1 = -1.8
+df     <- n - 1                    # 24
+
+# ---- (c) critical value, decision ----
+t_crit <- qt(1 - alpha/2, df)      # 2.064   (cuts off 2.5% in each tail)
+abs(t_stat) > t_crit               # FALSE -> do not reject H0
+# exact p-value (0.084): oneSampleTTest() on the stand-in sample below
+
+# ---- (d) 95% confidence interval ----
+ci <- xbar + c(-1, 1) * t_crit * se
+ci                                 # 46.14 50.26
+
+# ---- extra: effect size and power (supports part e) ----
+d <- abs(xbar - mu0) / s           # Cohen's d = 0.36 (small-to-medium)
+library(pwr)
+pwr.t.test(n = 25, d = 0.36, sig.level = .05, type = "one.sample")$power   # 0.41
+pwr.t.test(d = 0.36, power = .80, sig.level = .05, type = "one.sample")$n  # 62.5 -> 63 batteries
+```
+
+**(a) Hypotheses [2].** H0: μ = 50 h (the batteries last as long as claimed). H1: μ ≠ 50 h (the true mean differs from 50). μ is the *population* mean, not the sample mean 48.2.
+
+**(b) SE, t, df [3].** SE = s/√n = 5/√25 = **1 h**: this is how much sample means of size 25 typically vary. t = (x̄ − μ₀)/SE = (48.2 − 50)/1 = **−1.80**: the sample mean is 1.8 standard errors below the claim. df = n − 1 = **24**, because one degree of freedom is used up in estimating the mean when computing s.
+
+**(c) p-value and decision [2].** p = **.084** (from `oneSampleTTest()` on the stand-in sample below). The critical value is t₀.₉₇₅,₂₄ = **±2.064**. Since |−1.80| < 2.064, or equivalently p = .084 > .05, we **fail to reject H0**. Report: *t(24) = −1.80, p = .084*. The sample gives no significant evidence that the mean lifetime differs from 50 h.
+
+**(d) 95% CI [3].** x̄ ± t\* × SE = 48.2 ± 2.064 × 1 = **[46.14, 50.26] h**. The interval contains 50, so it agrees with (c). A two-sided test at α = .05 rejects exactly when the 95% CI excludes μ₀, so the two methods always agree.
+
+**(e) "Proves the claim is true" [2].** Wrong. A non-significant result means the data are *compatible* with μ = 50; it does not prove μ = 50. Absence of evidence is not evidence of absence. The CI shows the true mean could plausibly be as low as 46.1 h, which is a real shortfall. The test also had low power: with d = 0.36 and n = 25, power is only about 41%, so a true 1.8 h shortfall would be missed more often than it was detected. About 63 batteries would be needed for 80% power.
+
+**Checking with `oneSampleTTest()`.** `lsr::oneSampleTTest()` and `t.test()` need raw data, but you only have n, the mean and the SD. Build a stand-in sample with exactly those values. The test uses only n, mean and SD, so the output matches the hand calculation whatever the seed.
+
+```{r}
+library(lsr)
+set.seed(1)
+z <- rnorm(25)
+x <- 48.2 + 5 * (z - mean(z)) / sd(z)           # standardise, then rescale: n 25, mean 48.2, SD 5
+mean(x); sd(x)                                  # 48.2  5
+oneSampleTTest(x, mu = 50)                      # t = -1.8, df = 24, p = 0.084, CI [46.136, 50.264], d = 0.36
+t.test(x, mu = 50)                              # same t, df, p, CI
+oneSampleTTest(x, mu = 50, one.sided = "less")  # one-sided: p = 0.042, CI [-Inf, 49.911]
+```
+
+When a question gives only summary statistics, show the hand route (SE, t, `qt`) as your answer and use this only as a check.
+
+> Marking: 1 per hypothesis (a); 1 each for SE, t, df (b); p/critical value + decision (c); 2 for the CI + 1 for agreement (d); 2 for the critique (e).
+
+
+### M4-B3 · z-test, standard error and sample size [10 marks] {#m4-b3}
+
+**Tests:** z-test; normal distribution; standard error  
+**Functions:** `pnorm()`, `qnorm()`, `sqrt()`
+
+**Question**
+
+An IQ test has a known population SD of 15. The 36 students from one school average 104.5.
+
+(a) Compute the z statistic and the two-sided p-value for H0: μ = 100. [3]
+(b) Give the one-sided p-value for H1: μ > 100. When is a one-sided test legitimate? [2]
+(c) How many students are needed to estimate the school's mean IQ to within ±3 points with 95% confidence? [3]
+(d) How do the standard error and the SD change if n increases from 25 to 100? [2]
+
+**Model answer (code + interpretation)**
+
+```{r}
+z <- (104.5 - 100) / (15 / sqrt(36))     # 4.5 / 2.5 = 1.80
+2 * pnorm(-abs(z))                       # 0.0719
+pnorm(z, lower.tail = FALSE)             # 0.0359
+(qnorm(.975) * 15 / 3)^2                 # 96.04 → round up to 97
+15 / sqrt(c(25, 100))                    # 3.0  1.5
+```
+
+**(a)** z = 1.80, p = .072: not significant two-sided. **(b)** p = .036. A one-sided test is legitimate only if the direction was fixed *before* seeing the data, for a theoretical reason; switching after the fact inflates Type I error. A z-test is used here because σ is known. **(c)** n = (1.96 × 15/3)² = 96.04 → 97 (always round up). **(d)** SE ∝ 1/√n, so it halves (3.0 → 1.5). The SD stays about 15, because it describes individuals and doesn't depend on n (Quiz 3–4 Q8).
+
+> Marking: SE, z and p (a); p + condition (b); formula, value, rounding up (c); SE + SD (d).
+
+
+### M4-B4 · Skewed data with missing values [10 marks] {#m4-b4}
+
+**Tests:** t-test; one-sample t-test; Wilcoxon / Mann-Whitney (non-parametric); Shapiro-Wilk normality test; QQ plot; normal distribution; confidence interval; mean / median / mode; skewness; missing values (NA); sampling distribution / CLT  
+**Functions:** `is.na()`, `mean()`, `median()`, `qqnorm()`, `shapiro.test()`, `t.test()`, `wilcox.test()`  
+**Data:** airquality
+
+**Question**
+
+Using the built-in `airquality` dataset, test whether mean Ozone differs from 40 ppb.
+
+(a) Report the number of non-missing values and compare the mean and median. What does the comparison suggest? [3]
+(b) Check normality using a QQ plot and the Shapiro–Wilk test. [2]
+(c) Perform a one-sample t-test and the Wilcoxon signed-rank test against 40. [3]
+(d) State your conclusion and justify which summary of the centre you would report. [2]
+
+**Model answer (code + interpretation)**
+
+```{r}
+oz <- airquality$Ozone
+sum(!is.na(oz))                                     # 116 (37 NA)
+mean(oz, na.rm = TRUE); median(oz, na.rm = TRUE)    # 42.1 vs 31.5
+qqnorm(oz); shapiro.test(oz)            # W = 0.879, p = 2.8e-08
+t.test(oz, mu = 40)            # t = 0.70, df = 115, p = 0.488, CI [36.1, 48.2]
+wilcox.test(oz, mu = 40)       # V = 3188, p = 0.683
+```
+
+**(a)** mean > median, so the data are right-skewed. **(b)** The QQ plot curves upwards at the right end and Shapiro p < .001: clearly not normal. **(c)–(d)** Neither test rejects H0 (t(115) = 0.70, p = .49; Wilcoxon p = .68). With n = 116 the CLT makes the t-test on the mean reasonable, and the non-parametric test agrees. Report the **median** (31.5 ppb) as the typical day, because the skew inflates the mean.
+
+> Marking: n, both statistics, skew (a); plot + test (b); 1.5 per test (c); conclusion + justification (d).
+
+
+### M4-B5 · Exact binomial test [6 marks] {#m4-b5}
+
+**Tests:** binomial distribution; confidence interval; power / sample size; proportions  
+**Functions:** `binom.test()`
+
+**Question**
+
+A seed company claims that 50% of its seeds produce red flowers. Of 100 plants grown, 62 have red flowers.
+
+(a) State H0 and H1 in terms of the population proportion θ. [1]
+(b) Run `binom.test()` and report the p-value and 95% CI. [2]
+(c) Interpret the CI. [1]
+(d) Would 31 red flowers out of 50 plants (the same 62%) lead to the same conclusion? Explain. [2]
+
+**Model answer (code + interpretation)**
+
+```{r}
+binom.test(62, 100, p = 0.5)     # p-value = 0.02098, 95% CI 0.517 0.715
+binom.test(31, 50, p = 0.5)      # p-value = 0.119
+```
+
+**(a)** H0: θ = 0.5; H1: θ ≠ 0.5. **(b)** p = .021 → reject H0. **(c)** We are 95% confident the true proportion of red-flowering seeds is between 0.52 and 0.72; 0.5 is excluded. **(d)** No: p = .12. The same proportion from a smaller sample has a larger SE, so the evidence is weaker (lower power). This is the same arithmetic as the lecture's ESP example.
+
+> Marking: hypotheses (a); p + CI (b); interpretation (c); result + reason (d).
+
+
+## M4 · Part A · MCQs with answers (+1 / −0.25)
+
+
+### M4-A1 · To learn about the sleep of all IITK students, a researcher measures 150 randomly selected hostel residents. What is the sample? {#m4-a1}
+
+- A. All IITK students
+- **B. The 150 hostel residents who were measured  ← correct**
+- C. All hostel residents
+- D. The mean sleep of the 150 residents
+
+**Answer: B.** The sample is the units actually measured; the population is who you want to generalise to (all IITK students). Option D is a statistic. The sample comes only from hostels, so check whether that matters for sleep (Quiz 1 Q2–Q3).
+
+
+### M4-A2 · A survey of weekly exercise interviews people leaving a gym. Increasing the sample from 100 to 1,000 people will: {#m4-a2}
+
+- A. Remove the bias
+- **B. Reduce sampling error, but not the bias  ← correct**
+- C. Increase the bias
+- D. Make the sample random
+
+**Answer: B.** Bias is systematic and doesn't shrink with n. A bigger biased sample is just more confidently wrong.
+
+
+### M4-A3 · If n increases from 16 to 64, the standard error of the mean: {#m4-a3}
+
+**Tests:** standard error
+
+- **A. Halves  ← correct**
+- B. Falls to a quarter
+- C. Doubles
+- D. Is unchanged
+
+**Answer: A.** SE = σ/√n, and √(64/16) = 2.
+
+
+### M4-A4 · Samples of n = 50 are drawn from a strongly right-skewed population with σ = 20. The sampling distribution of x̄ is: {#m4-a4}
+
+**Tests:** standard error; skewness; sampling distribution / CLT
+
+- A. Right-skewed, with SD 20
+- **B. Approximately normal, with SD ≈ 2.83  ← correct**
+- C. Exactly uniform
+- D. Normal, with SD 20/50 = 0.4
+
+**Answer: B.** The CLT: x̄ is approximately normal for moderate n whatever the population shape, with SE = 20/√50 = 2.83.
+
+
+### M4-A5 · "x̄ is an unbiased estimator of μ" means: {#m4-a5}
+
+- A. Every sample mean equals μ
+- **B. Averaged over many repeated samples, x̄ equals μ  ← correct**
+- C. x̄ has the smallest possible SD
+- D. The sample was randomly selected
+
+**Answer: B.** Unbiased = correct on average. Individual estimates still vary (that variation is the SE). Dividing by n − 1 makes s² unbiased for the same reason.
+
+
+### M4-A6 · A 95% CI for Diet 3's mean weight loss is [4.2, 6.1] kg. Which statement is correct? {#m4-a6}
+
+**Tests:** confidence interval
+
+- A. 95% of Diet 3 participants lost between 4.2 and 6.1 kg
+- B. There is a 95% probability that μ lies in this particular interval
+- **C. The procedure captures μ in 95% of repeated samples, so we are 95% confident μ is in [4.2, 6.1]  ← correct**
+- D. The sample mean lies in this interval 95% of the time
+
+**Answer: C.** The 95% describes the method's long-run coverage. Option A is the notebook's error: a CI for the mean says nothing about individuals.
+
+
+### M4-A7 · The Diet z-test gives p = 0.008. What does this mean? {#m4-a7}
+
+**Tests:** z-test; confidence interval
+
+- A. H0 is true only 0.8% of the time
+- **B. If H0 were true, a result at least this extreme would occur with probability 0.008  ← correct**
+- C. There is a 99.2% chance that H1 is true
+- D. The effect is large
+
+**Answer: B.** A p-value is computed assuming H0, so it can't give the probability of H0 itself (Quiz 3–4 Q3). Size the effect with d or a CI, not p.
+
+
+### M4-A8 · Concluding that a drug works when in fact it has no effect is a: {#m4-a8}
+
+**Tests:** power / sample size; missing values (NA)
+
+- **A. Type I error  ← correct**
+- B. Type II error
+- C. Power
+- D. β error
+
+**Answer: A.** Type I = rejecting a true H0 (probability α). Type II = missing a real effect (probability β); power = 1 − β.
+
+
+### M4-A9 · Which change increases statistical power, other things being equal? {#m4-a9}
+
+**Tests:** power / sample size
+
+- A. Lowering α from .05 to .01
+- B. Increasing measurement variability
+- **C. A larger true effect size  ← correct**
+- D. A smaller sample size
+
+**Answer: C.** Power rises with effect size, n and α, and falls with noise (Quiz 3–4 Q4).
+
+
+### M4-A10 · A z-test rather than a t-test is appropriate when: {#m4-a10}
+
+**Tests:** z-test; skewness
+
+- A. n < 30
+- **B. The population σ is known  ← correct**
+- C. The data are skewed
+- D. Two groups are compared
+
+**Answer: B.** The z-test uses the known σ; the t-test estimates it with s, which adds uncertainty and so uses heavier-tailed t distributions.
+
+
+### M4-A11 · Load ToothGrowth and run `t.test(ToothGrowth$len, mu = 20)`. Which statement is best? {#m4-a11}
+
+**Tests:** t-test; one-sample t-test; confidence interval  
+**Functions:** `t.test()`  
+**Data:** ToothGrowth
+
+- A. Mean tooth length is significantly below 20
+- **B. The result is not significant, and the 95% CI includes 20  ← correct**
+- C. The mean tooth length is exactly 20
+- D. The test is invalid because n > 30
+
+**Answer: B.** t(59) = −1.20, p = .234, 95% CI [16.84, 20.79], which contains 20. Failing to reject doesn't show the mean is exactly 20.
+
+```{r}
+t.test(ToothGrowth$len, mu = 20)
+# t = -1.2017, df = 59, p-value = 0.2343
+# 95 percent confidence interval: 16.83731 20.78936
+```
+
+
+### M4-A12 · What is `qt(0.975, df = 24)` used for? {#m4-a12}
+
+**Tests:** t distribution (pt / qt); confidence interval
+
+- A. The critical z for α = .05
+- **B. The multiplier for a 95% CI for a mean when n = 25 (≈ 2.064)  ← correct**
+- C. A p-value
+- D. A 97.5% confidence interval
+
+**Answer: B.** CI = x̄ ± qt(.975, n − 1) × s/√n. With large df it approaches 1.96.
+
+
+### M4-A13 · Shapiro–Wilk on Diet 3's weight loss gives p = 0.37. What should you conclude? {#m4-a13}
+
+**Tests:** Wilcoxon / Mann-Whitney (non-parametric); Shapiro-Wilk normality test; QQ plot
+
+- A. The data are proven to be normal
+- **B. There is no evidence against normality, so a t-test is reasonable  ← correct**
+- C. The data are not normal
+- D. You must use the Wilcoxon test
+
+**Answer: B.** H0 for Shapiro is normality. A large p means no evidence of non-normality, not proof of it; also look at the QQ plot.
+
+
+### M4-A14 · How many people are needed to estimate mean IQ (σ = 15) to within ±3 points with 95% confidence? {#m4-a14}
+
+- A. 10
+- B. 25
+- **C. 97  ← correct**
+- D. 385
+
+**Answer: C.** n = (1.96 × 15 / 3)² = 96.04, rounded up to 97. Halving the margin to ±1.5 needs about 4 times as many (385).
+
+
+### M4-A15 · z = 1.80 gives a two-sided p of .072 and a one-sided p of .036. After seeing the data, a researcher switches to the one-sided test and reports significance. This is: {#m4-a15}
+
+**Tests:** z-test; power / sample size
+
+- A. Fine, because one-sided tests are more powerful
+- **B. A misuse: the direction must be fixed before seeing the data  ← correct**
+- C. Fine whenever n > 30
+- D. Required for z-tests
+
+**Answer: B.** Choosing the tail after seeing the data effectively doubles α.
+
+
+### M4-A16 · A 95% CI for a mean difference is [0.3, 2.1]. For the two-sided test of H0: difference = 0 at α = .05: {#m4-a16}
+
+**Tests:** confidence interval
+
+- **A. Reject H0, because 0 is outside the CI  ← correct**
+- B. Retain H0
+- C. You cannot tell without the raw data
+- D. p must equal .95
+
+**Answer: A.** A two-sided test at α rejects exactly when the (1 − α) CI excludes the null value. At α = .01 you would need the 99% CI.
+
+
+### M4-A17 · Compared with the 95% CI from the same data, a 99% CI is: {#m4-a17}
+
+**Tests:** t distribution (pt / qt); confidence interval  
+**Functions:** `qt()`, `sqrt()`
+
+- A. Narrower
+- **B. Wider  ← correct**
+- C. The same width
+- D. Centred somewhere else
+
+**Answer: B.** More confidence needs a bigger multiplier (e.g. qt(.995, 39) = 2.71 vs qt(.975, 39) = 2.02). Both are centred on x̄.
+
+```{r}
+12.4 + c(-1, 1) * qt(.995, 39) * 3.2 / sqrt(40)   # 99%: 11.03 13.77
+```
+
+
+# Module 5 · Chi-square tests and t-tests (one-sample, Student, Welch, paired), non-parametric fallbacks
+
+
+## M5 · Part B · Written and R questions (model answers)
+
+
+### M5-B1 · Two independent groups [15 marks] {#m5-b1}
+
+**Tests:** t-test; Student t-test (equal variances); Welch (t-test or ANOVA); Wilcoxon / Mann-Whitney (non-parametric); Shapiro-Wilk normality test; Levene's test (homogeneity of variance); Cohen's d (effect size); confidence interval; power / sample size; SD / variance; mean / median / mode; boxplot; group summaries  
+**Functions:** `aggregate()`, `boxplot()`, `by()`, `factor()`, `leveneTest()`, `mean()`, `median()`, `sd()`, `sqrt()`, `t.test()`, `tapply()`, `wilcox.test()`  
+**Data:** chickwts
+
+**Question**
+
+Load the built-in `chickwts` dataset (chick weights after 6 weeks on different feeds). Keep only the **soybean** and **linseed** groups.
+
+(a) Draw a boxplot and report n, mean, SD and median for each feed. [3]
+(b) State the null and alternative hypotheses. [1]
+(c) Check normality within each group and homogeneity of variance. [3]
+(d) Perform Student's and Welch's independent-samples t-tests and compare them. Which would you report? [4]
+(e) Report Cohen's d, and run the non-parametric alternative as a check. [2]
+(f) Write the result in one reporting paragraph. Is "no difference between feeds" a fair conclusion? [2]
+
+**Model answer (code + interpretation)**
+
+```{r}
+library(car); library(lsr)
+cw <- chickwts[chickwts$feed %in% c("soybean", "linseed"), ]
+cw$feed <- factor(cw$feed)                    # keep only the two levels
+boxplot(weight ~ feed, data = cw, ylab = "weight (g)")
+aggregate(weight ~ feed, cw, function(x) c(n = length(x), mean = mean(x), sd = sd(x), median = median(x)))
+#  linseed  n 12  mean 218.75  sd 52.24  median 221
+#  soybean  n 14  mean 246.43  sd 54.13  median 248
+by(cw$weight, cw$feed, shapiro.test)           # p = 0.90 (linseed), 0.51 (soybean)
+leveneTest(weight ~ feed, data = cw)           # F(1, 24) = 0.04, p = 0.84
+t.test(weight ~ feed, data = cw, var.equal = TRUE)   # t = -1.3208, df = 24,    p = 0.199, CI [-70.9, 15.6]
+t.test(weight ~ feed, data = cw)                     # t = -1.3246, df = 23.63, p = 0.198, CI [-70.8, 15.5]
+m <- tapply(cw$weight, cw$feed, mean); s <- tapply(cw$weight, cw$feed, sd); n <- tapply(cw$weight, cw$feed, length)
+sp <- sqrt(((n[1] - 1) * s[1]^2 + (n[2] - 1) * s[2]^2) / (n[1] + n[2] - 2))   # pooled SD
+(m[2] - m[1]) / sp                             # Cohen's d = 0.52
+wilcox.test(weight ~ feed, data = cw)          # W = 60.5, p = 0.236
+```
+
+**(b)** H0: μ_soybean = μ_linseed; H1: they differ. **(c)** Both groups look normal (Shapiro p = .90, .51) and the variances are similar (Levene p = .84; SDs 52 vs 54). **(d)** The two tests agree almost exactly, because the variances and ns are similar. Either is defensible; Welch is R's default and the safe choice. **(e)** d = 0.52, a medium effect; Mann–Whitney agrees (W = 60.5, p = .24). **(f)** "Chicks fed soybean weighed 246.4 g (SD 54.1) and those fed linseed 218.8 g (SD 52.2). The 27.7 g difference was not significant, Welch t(23.63) = −1.32, p = .198, 95% CI [−70.8, 15.5], d = 0.52." "No difference" is *not* fair: d is medium, the CI allows differences of up to 70 g, and with about 13 chicks per group power is low (about 64 per group are needed for 80% power at d = 0.5).
+
+> Marking follows Quiz 5 ("test all the assumptions… revise as required"): 1 plot + 2 table (a); hypotheses (b); 1.5 normality + 1.5 variance (c); 1 per test + 2 for the comparison and choice (d); 1 + 1 (e); report + power caveat (f).
+
+
+### M5-B2 · Paired samples [12 marks] {#m5-b2}
+
+**Tests:** t-test; paired t-test; Welch (t-test or ANOVA); Shapiro-Wilk normality test; Cohen's d (effect size); correlation (Pearson / Spearman); confidence interval; power / sample size; SD / variance; mean / median / mode  
+**Functions:** `cor()`, `mean()`, `pwr.t.test()`, `sd()`, `shapiro.test()`, `t.test()`
+
+**Question**
+
+Barley yields in 1931 (`Y1`) and 1932 (`Y2`) were measured on the same 30 location × variety plots (the values are typed into the code below).
+
+(a) Why must these data be analysed as paired? [2]
+(b) Compute the differences and check their normality. [2]
+(c) Perform a paired t-test (or a one-sample t-test on the differences) and report it. [3]
+(d) Report Cohen's d for the paired design. Using half that effect size, estimate the power with 30 pairs at α = 0.05. [3]
+(e) Run the (incorrect) independent-samples test as well. Explain why its result differs. [2]
+
+**Model answer (code + interpretation)**
+
+```{r}
+library(pwr)
+Y1 <- c(81, 105.4, 119.7, 109.7, 98.3, 146.6, 142, 150.7, 191.5, 145.7, 82.3, 77.3, 78.4, 131.3, 89.6,
+        119.8, 121.4, 124, 140.8, 124.8, 98.9, 89, 69.1, 89.3, 104.1, 86.9, 77.1, 78.9, 101.8, 96)
+Y2 <- c(80.7, 82.3, 80.4, 87.2, 84.2, 100.4, 115.5, 112.2, 147.7, 108.1, 103.1, 105.1, 116.5, 139.9, 129.6,
+        98.9, 61.9, 96.2, 125.5, 75.7, 66.4, 49.9, 96.7, 61.9, 80.3, 67.7, 66.7, 67.4, 91.8, 94.1)
+d <- Y1 - Y2
+c(mean = mean(d), sd = sd(d), r = cor(Y1, Y2))   # 15.91  26.22  0.52
+shapiro.test(d)                                 # W = 0.938, p = 0.080
+t.test(Y1, Y2, paired = TRUE)                   # t = 3.324, df = 29, p-value = 0.002413, CI [6.12, 25.70]
+mean(d) / sd(d)                                 # Cohen's d = 0.607
+pwr.t.test(d = 0.607 / 2, n = 30, type = "paired")   # power = 0.362
+t.test(Y1, Y2)                                  # Welch t = 2.32, df = 56.46, p = 0.024 (wrong test)
+```
+
+**(a)** Each plot (location × variety) was measured in both years, so the two yields share soil and variety effects and are correlated (r = .52). The observations aren't independent. **(b)** Shapiro p = .08: borderline but acceptable, and the t-test is robust with 30 pairs. **(c)** H0: μ_d = 0. Yields were 15.9 units higher in 1931, t(29) = 3.32, p = .002, 95% CI [6.1, 25.7]. **(d)** d = 0.61 (medium). Power for d = 0.30 with 30 pairs is only 0.36. **(e)** The independent test treats 60 unrelated plots and leaves the between-plot variability in the SE, so t falls from 3.32 to 2.32 and p rises from .002 to .024. Pairing removes that variability (Quiz 3–4 Q13).
+
+> Marking mirrors Quiz 5 Q2: reason (a); differences + test (b); 1 each for t/df, p, CI (c); d + power (d); result + reason (e).
+
+
+### M5-B3 · Categorical data: independence and goodness of fit [16 marks] {#m5-b3}
+
+**Tests:** Cramer's V; chi-square test; chi-square goodness of fit; expected counts; contingency table  
+**Functions:** `as.data.frame()`, `chisq.test()`, `cramersV()`, `xtabs()`  
+**Data:** UCBAdmissions
+
+**Question**
+
+The built-in `UCBAdmissions` table records 4,526 applications to six UC Berkeley departments in 1973, by gender and admission decision.
+
+(a) Collapse it to a Gender × Admit table and report the admission rate for each gender. [3]
+(b) Perform a chi-square test of independence. State the hypotheses, check the expected counts and report the result. [4]
+(c) Report an appropriate effect size and interpret it. [2]
+(d) Does this result show that the university discriminated against women? Use the department-level admission rates in your answer. [3]
+(e) Test whether applications were spread equally across the six departments. Give the expected counts and df. [4]
+
+**Model answer (code + interpretation)**
+
+```{r}
+library(lsr)
+ucb <- as.data.frame(UCBAdmissions)          # one row per Admit × Gender × Dept, with Freq
+ub <- xtabs(Freq ~ Gender + Admit, data = ucb); ub
+#         Admit
+# Gender   Admitted Rejected
+#   Male       1198     1493
+#   Female      557     1278
+ub[, "Admitted"] / (ub[, "Admitted"] + ub[, "Rejected"])   # admitted: male 0.445, female 0.304
+res <- chisq.test(ub); res       # X-squared = 91.61, df = 1, p < 2.2e-16
+res$expected                     # 1043.5 1647.5 / 711.5 1123.5 (all ≫ 5)
+cramersV(ub)                     # 0.143
+adm <- xtabs(Freq ~ Gender + Dept, data = ucb[ucb$Admit == "Admitted", ])
+tot <- xtabs(Freq ~ Gender + Dept, data = ucb)
+round(adm / tot, 2)              # admission rate by gender within each department
+#          A    B    C    D    E    F
+# Male   0.62 0.63 0.37 0.33 0.28 0.06
+# Female 0.82 0.68 0.34 0.35 0.24 0.07
+apps <- xtabs(Freq ~ Dept, data = ucb); apps     # 933 585 918 792 584 714
+chisq.test(apps)                 # X-squared = 158.34, df = 5, p < 2.2e-16; E = 4526/6 = 754.3 each
+```
+
+**(b)** H0: gender and admission are independent; H1: they are associated. All expected counts exceed 700, so χ² is valid. χ²(1) = 91.6, p < .001: admission is associated with gender. **(c)** Cramér's V = 0.14, a small association. It is highly significant only because N is large. **(d)** No. Within departments, women's admission rates are similar or higher (A: 82% vs 62%). Women applied mostly to the competitive departments (C–F), so department is a **confound**, and the aggregate association reverses when it is controlled (Simpson's paradox). χ² shows association, not cause (Quiz 3–4 Q11). **(e)** H0: each department receives 1/6 of applications. E = 754.3 for each, df = 6 − 1 = 5, χ²(5) = 158.3, p < .001: applications were not spread evenly (A and C were most popular).
+
+> Marking: table + 2 rates (a); hypotheses, expected check, result (b); value + interpretation (c); department evidence + confound (d); 1 each for H0, E, df and result (e).
+
+
+### M5-B4 · Before and after (McNemar) [9 marks] {#m5-b4}
+
+**Tests:** chi-square test; McNemar test; contingency table; proportions  
+**Functions:** `chisq.test()`, `matrix()`, `mcnemar.test()`
+
+**Question**
+
+50 patients were assessed for a symptom before and after treatment. 8 had it both times, 15 had it before but not after, 4 did not have it before but did after, and 23 never had it.
+
+(a) Create the paired 2 × 2 table in R. [2]
+(b) State the null and alternative hypotheses. [2]
+(c) Run `mcnemar.test()`. Which cells contribute to the statistic, and why? [3]
+(d) Why would `chisq.test()` on this table be inappropriate, and what would it test instead? [2]
+
+**Model answer (code + interpretation)**
+
+```{r}
+tab <- matrix(c(8, 4, 15, 23), nrow = 2,
+              dimnames = list(before = c("present", "absent"), after = c("present", "absent")))
+tab
+#          after
+# before    present absent
+#   present       8     15
+#   absent        4     23
+mcnemar.test(tab)     # McNemar's chi-squared = 5.2632, df = 1, p-value = 0.02178
+chisq.test(tab)       # X-squared = 1.73, p = 0.19 (answers a different question)
+```
+
+**(b)** H0: the symptom is equally likely before and after (marginal homogeneity: changes are equally likely in each direction). H1: the proportion with the symptom changed. **(c)** Only the discordant cells, 15 and 4: χ² = (|15 − 4| − 1)²/19 = 5.26, p = .022. The 31 patients who didn't change carry no information about change. The symptom fell from 46% (23/50) to 24% (12/50). **(d)** The before and after responses come from the same people, so they are not independent observations. `chisq.test()` would test whether the before status predicts the after status, which is not the question.
+
+> Marking: code + correct orientation (a); hypotheses (b); result + discordant cells + reason (c); independence violated + what it tests (d).
+
+
+### M5-B5 · Hand calculations [8 marks] {#m5-b5}
+
+**Tests:** paired t-test; chi-square test; chi-square goodness of fit; expected counts; t distribution (pt / qt); confidence interval; standard error  
+**Functions:** `chisq.test()`, `qt()`, `sqrt()`
+
+**Question**
+
+(a) A genetic cross predicts phenotypes in a 1 : 2 : 1 ratio. Of 100 offspring, 30, 40 and 30 fall in the three categories. Calculate the expected counts, χ², df and the conclusion at α = .05. [4]
+(b) 16 participants' memory scores change (after − before) by a mean of 4 points, with SD of the differences 6. Calculate the 95% CI for the mean change and say whether a paired t-test would reject H0 at α = .05. [4]
+
+**Model answer (code + interpretation)**
+
+```{r}
+chisq.test(c(30, 40, 30), p = c(1, 2, 1) / 4)   # X-squared = 4, df = 2, p-value = 0.1353
+4 + c(-1, 1) * qt(.975, df = 15) * 6 / sqrt(16)  # 0.80 7.20   (qt = 2.131, SE = 1.5)
+```
+
+**(a)** E = 25, 50, 25. χ² = 25/25 + 100/50 + 25/25 = 1 + 2 + 1 = 4, df = 2. Since 4 < 5.99 (p = .135), the data are consistent with 1 : 2 : 1. **(b)** SE = 6/√16 = 1.5; CI = 4 ± 2.131 × 1.5 = [0.80, 7.20]. 0 is outside the CI, so the paired t-test rejects H0 (t(15) = 2.67).
+
+> Same style as Quiz 3–4 Q16–Q17: E, χ², df, decision (a); SE, t\*, CI, decision (b).
+
+
+## M5 · Class practice assignment, fully solved
+
+
+### M5-ASSIGN1 · P1 one-sample · Does mean mpg in mtcars differ from 20 mpg? Give the mean, t, p and 95% CI. Does the CI agree with the test? {#m5-assign1}
+
+**Tests:** t-test; one-sample t-test; Cohen's d (effect size); confidence interval; mean / median / mode  
+**Functions:** `mean()`, `str()`, `t.test()`  
+**Data:** mtcars
+
+H0: μ = 20; H1: μ ≠ 20.
+
+```{r}
+data(mtcars); str(mtcars)
+mean(mtcars$mpg)                 # 20.09
+t.test(mtcars$mpg, mu = 20)
+```
+
+```text
+t = 0.08506, df = 31, p-value = 0.9328
+95 percent confidence interval:  17.91768 22.26357
+mean of x  20.09062
+```
+
+The mean is 20.09 mpg; t(31) = 0.09, p = .93 → retain H0. The 95% CI [17.92, 22.26] contains 20, so the CI and the test agree; they always do for a two-sided test at the matching α. d = 0.02: the mean is essentially 20.
+
+
+### M5-ASSIGN2 · P2 Student vs Welch · Compare mpg for automatic (am = 0) and manual (am = 1) cars: boxplot, Student and Welch. Which would you prefer? {#m5-assign2}
+
+**Tests:** t-test; Student t-test (equal variances); Welch (t-test or ANOVA); Shapiro-Wilk normality test; Levene's test (homogeneity of variance); confidence interval; SD / variance; mean / median / mode; boxplot; group summaries  
+**Functions:** `aggregate()`, `boxplot()`, `by()`, `factor()`, `leveneTest()`, `mean()`, `sd()`, `t.test()`  
+**Data:** mtcars
+
+H0: μ_auto = μ_manual; H1: they differ.
+
+```{r}
+boxplot(mpg ~ am, data = mtcars, names = c("automatic", "manual"), ylab = "mpg")
+aggregate(mpg ~ am, mtcars, function(x) c(n = length(x), mean = mean(x), sd = sd(x)))
+#   am  n   mean    sd
+#    0 19  17.15  3.83
+#    1 13  24.39  6.17
+t.test(mpg ~ am, data = mtcars, var.equal = TRUE)   # Student
+t.test(mpg ~ am, data = mtcars)                     # Welch
+car::leveneTest(mpg ~ factor(am), data = mtcars)    # F(1, 30) = 4.19, p = 0.0496
+by(mtcars$mpg, mtcars$am, shapiro.test)             # p = 0.90 and 0.54 → normal enough
+```
+
+```text
+Student:  t = -4.1061, df = 30,     p-value = 0.000285   95% CI -10.85  -3.64
+Welch:    t = -3.7671, df = 18.332, p-value = 0.001374   95% CI -11.28  -3.21
+```
+
+Manual cars do 7.24 mpg more on average. Both tests reject H0, but Welch is **preferred**: the manual group's SD is 1.6× larger, Levene's test is (just) significant (p = .0496), and the larger SD belongs to the smaller group, the case where Student's test is too liberal. Welch's df is lower (18.3 vs 30), its CI is wider and its p is larger, which is the honest price of not assuming equal variances.
+
+
+### M5-ASSIGN3 · P3 paired · sleep: which observations are paired? Run a paired t-test. Why is an independent test inappropriate? {#m5-assign3}
+
+**Tests:** t-test; paired t-test; Welch (t-test or ANOVA); Cohen's d (effect size); confidence interval; standard error; SD / variance; mean / median / mode  
+**Functions:** `mean()`, `sd()`, `t.test()`  
+**Data:** sleep
+
+The `ID` column (1–10) appears once under each drug, so rows with the same ID are the same person: 10 pairs. H0: mean difference = 0.
+
+```{r}
+data(sleep); sleep
+x1 <- sleep$extra[sleep$group == 1]; x2 <- sleep$extra[sleep$group == 2]
+t.test(x2, x1, paired = TRUE)            # NOT t.test(extra ~ group, paired = TRUE): an error in R 4.6
+mean(x2 - x1) / sd(x2 - x1)              # Cohen's d = 1.28
+t.test(x2, x1)                           # the WRONG unpaired test, for comparison
+```
+
+```text
+Paired t-test:  t = 4.0621, df = 9, p-value = 0.002833
+95 percent confidence interval:  0.7001142 2.4598858     mean difference 1.58
+Welch (unpaired, wrong):  t = 1.8608, df = 17.776, p-value = 0.07939
+```
+
+Drug 2 produced 1.58 h more extra sleep than drug 1, t(9) = 4.06, p = .003, 95% CI [0.70, 2.46], d = 1.28. An independent test is inappropriate because the two scores from each person are correlated (r = .80). Treating them as different people violates independence, wastes the within-person comparison, and inflates the SE from 0.39 to 0.85, so the effect looks non-significant (p = .079).
+
+
+### M5-ASSIGN4 · P4 GOF · Do 4-, 6- and 8-cylinder cars occur in equal proportions? Give O, E, how χ² is calculated, and the df. {#m5-assign4}
+
+**Tests:** chi-square test; chi-square goodness of fit; expected counts; proportions  
+**Functions:** `chisq.test()`, `table()`  
+**Data:** mtcars
+
+H0: p₄ = p₆ = p₈ = 1/3; H1: not all equal.
+
+```{r}
+table(mtcars$cyl)                      #  4  6  8 → 11  7 14
+res <- chisq.test(table(mtcars$cyl))
+res$expected                           # 10.667 10.667 10.667
+res
+```
+
+```text
+X-squared = 2.3125, df = 2, p-value = 0.3147
+```
+
+E = 32/3 = 10.67 per category. χ² = (11 − 10.67)²/10.67 + (7 − 10.67)²/10.67 + (14 − 10.67)²/10.67 = 0.010 + 1.260 + 1.042 = 2.31. df = k − 1 = 2, because the three counts must sum to 32 and only two are free. p = .31 → no evidence that the cylinder categories are unequally common. All E ≥ 5, so the approximation is fine.
+
+
+### M5-ASSIGN5 · P5 independence + Fisher · Is transmission (am) associated with cylinders (cyl)? Check expected counts; run Fisher if needed. How does this differ from P4? {#m5-assign5}
+
+**Tests:** Cramer's V; chi-square test; chi-square goodness of fit; Fisher's exact test; expected counts; proportions  
+**Functions:** `chisq.test()`, `cramersV()`, `fisher.test()`, `table()`  
+**Data:** mtcars
+
+H0: am and cyl are independent; H1: they are associated.
+
+```{r}
+tc <- table(am = mtcars$am, cyl = mtcars$cyl); tc
+#    cyl   4  6  8
+#  am 0    3  4 12
+#     1    8  3  2
+res <- chisq.test(tc)                  # Warning: Chi-squared approximation may be incorrect
+round(res$expected, 2)
+#        4    6    8
+#  0  6.53 4.16 8.31
+#  1  4.47 2.84 5.69
+res                                    # X-squared = 8.7407, df = 2, p-value = 0.01265
+fisher.test(tc)                        # p-value = 0.009105
+lsr::cramersV(tc)                      # 0.52
+```
+
+Three of the six expected counts are below 5 (4.16, 4.47, 2.84), so the χ² approximation is doubtful and R warns. Fisher's exact test gives p = .009, the same conclusion as χ²(2) = 8.74, p = .013: transmission type and cylinder count are associated (V = 0.52, a large association). Manual cars are mostly 4-cylinder; automatics are mostly 8-cylinder.
+
+**Difference from P4:** GOF has one variable compared with fixed, specified proportions, with df = k − 1. Independence has two variables, the expected counts come from the table's own margins, and df = (r − 1)(c − 1).
+
+
+### M5-ASSIGN6 · P6 McNemar · 30 participants before/after training (correct/incorrect). State hypotheses, run mcnemar.test(), say which cells matter, and interpret. {#m5-assign6}
+
+**Tests:** chi-square test; McNemar test; binomial distribution; contingency table  
+**Functions:** `binom.test()`, `matrix()`, `mcnemar.test()`
+
+```{r}
+tr <- matrix(c(12, 10, 3, 5), nrow = 2,
+             dimnames = list(before = c("correct", "incorrect"), after = c("correct", "incorrect")))
+tr
+#            after
+# before      correct incorrect
+#   correct        12         3
+#   incorrect      10         5
+mcnemar.test(tr)                       # McNemar's chi-squared = 2.7692, df = 1, p-value = 0.09609
+mcnemar.test(tr, correct = FALSE)      # 3.7692, p = 0.0522
+binom.test(3, 13)                      # exact version: p = 0.092
+```
+
+H0: P(correct before) = P(correct after), i.e. changes in either direction are equally likely (marginal homogeneity). H1: they differ. Only the **discordant** cells contribute: 3 people went correct → incorrect and 10 went incorrect → correct. The 12 + 5 who didn't change say nothing about change. χ² = (|10 − 3| − 1)²/13 = 36/13 = 2.77, p = .096 → not significant at .05. Correct responses rose from 15/30 (50%) to 22/30 (73%), but with only 13 people changing, that is weak evidence; the exact binomial test agrees (p = .09).
+
+
+## M5 · Part A · MCQs with answers (+1 / −0.25)
+
+
+### M5-A1 · In a chi-square test of independence on a 2 × 5 contingency table, what are the degrees of freedom? {#m5-a1}
+
+**Tests:** chi-square test; contingency table
+
+- A. 10
+- **B. 4  ← correct**
+- C. 9
+- D. 5
+
+**Answer: B.** (r − 1)(c − 1) = 1 × 4 = 4 (Quiz 3–4 Q6 had a 3 × 4 table: 6).
+
+
+### M5-A2 · In a goodness-of-fit test with equal expected proportions, the observed counts are 30, 50 and 20. What is χ²? {#m5-a2}
+
+**Tests:** chi-square test; chi-square goodness of fit; proportions  
+**Functions:** `chisq.test()`
+
+- A. 4.67
+- B. 7
+- **C. 14  ← correct**
+- D. 28
+
+**Answer: C.** E = 33.33 each: (11.1 + 277.8 + 177.8)/33.33 = 14.0, df = 2, p = .0009.
+
+```{r}
+chisq.test(c(30, 50, 20))   # X-squared = 14, df = 2, p-value = 0.000912
+```
+
+
+### M5-A3 · A researcher runs the code below. Under independence, what is the expected count in the first cell? {#m5-a3}
+
+**Tests:** chi-square test; expected counts; contingency table  
+**Functions:** `chisq.test()`, `matrix()`
+
+```{r}
+tab <- matrix(c(20, 30, 40, 10), nrow = 2, byrow = TRUE)
+chisq.test(tab)
+```
+
+- A. 20
+- B. 25
+- **C. 30  ← correct**
+- D. 50
+
+**Answer: C.** Row 1 total 50 × column 1 total 60 / N 100 = 30. Remember byrow = TRUE: row 1 is 20, 30.
+
+```{r}
+chisq.test(tab)$expected   # 30 20 / 30 20
+```
+
+
+### M5-A4 · Why can a chi-square statistic never be negative? {#m5-a4}
+
+**Tests:** chi-square test; expected counts
+
+- **A. It sums squared deviations divided by positive expected counts  ← correct**
+- B. p-values are always positive
+- C. The degrees of freedom are positive
+- D. R takes the absolute value
+
+**Answer: A.** Every term (O − E)²/E is ≥ 0. That is also why χ² tests use only the right tail.
+
+
+### M5-A5 · Load mtcars and run `chisq.test(table(mtcars$gear))`. Which conclusion is correct? {#m5-a5}
+
+**Tests:** chi-square test; chi-square goodness of fit; expected counts; proportions  
+**Functions:** `chisq.test()`, `table()`  
+**Data:** mtcars
+
+- A. The numbers of cars with 3, 4 and 5 gears differ significantly
+- **B. At α = .05 there is no significant evidence against equal proportions  ← correct**
+- C. Gear count is associated with mpg
+- D. The test is invalid because the expected counts are below 5
+
+**Answer: B.** Counts are 15, 12 and 5; E = 10.67 each; χ²(2) = 4.94, p = .085. All E ≥ 5, so the test is valid. A GOF test involves one variable, so it can't show association (option C).
+
+```{r}
+chisq.test(table(mtcars$gear))   # X-squared = 4.9375, df = 2, p-value = 0.08469
+```
+
+
+### M5-A6 · Mendel's peas: `chisq.test(c(315, 108, 101, 32), p = c(9, 3, 3, 1)/16)` gives χ²(3) = 0.47, p = .925. This means: {#m5-a6}
+
+**Tests:** chi-square test; chi-square goodness of fit
+
+- A. The 9:3:3:1 ratio has been proven
+- **B. The observed counts are consistent with a 9:3:3:1 ratio  ← correct**
+- C. The four phenotypes are equally common
+- D. The test needs df = 4
+
+**Answer: B.** Not rejecting H0 means the data fit, not that the ratio is proven. df = k − 1 = 3.
+
+
+### M5-A7 · In a 2 × 2 table, two expected counts are 3.1 and 4.2. What should you use? {#m5-a7}
+
+**Tests:** chi-square test; Fisher's exact test; McNemar test; expected counts; contingency table
+
+- A. chisq.test() as usual
+- **B. fisher.test()  ← correct**
+- C. mcnemar.test()
+- D. A larger α
+
+**Answer: B.** Expected counts below 5 make the χ² approximation unreliable; Fisher's exact test is valid at any sample size.
+
+
+### M5-A8 · MASS::survey Smoke × Exer gives the warning "Chi-squared approximation may be incorrect". The smallest expected count is 1.07. The best response is: {#m5-a8}
+
+**Tests:** chi-square test; Fisher's exact test; expected counts
+
+- A. Ignore it, because N = 236
+- **B. Run fisher.test() or merge sparse categories  ← correct**
+- C. Switch to a t-test
+- D. Remove the rows that have a warning
+
+**Answer: B.** fisher.test(st) gives p = .41, the same conclusion as χ² here (no association).
+
+
+### M5-A9 · Fisher's "lady tasting tea": 3 of 4 milk-first and 3 of 4 tea-first cups were identified correctly. `fisher.test(matrix(c(3, 1, 1, 3), 2))` gives p = .486. Conclusion? {#m5-a9}
+
+**Tests:** chi-square test; Fisher's exact test; contingency table
+
+- A. Strong evidence of tasting skill
+- **B. No evidence of skill: 6/8 correct is quite likely by guessing  ← correct**
+- C. χ² should have been used instead
+- D. The test is invalid because the counts are below 5
+
+**Answer: B.** With every E = 2, Fisher's exact test is the right test (it is valid at any sample size). p = .486: getting 6 of 8 right is quite likely by guessing.
+
+
+### M5-A10 · 50 patients have the symptom before/after: 15 went present→absent and 4 went absent→present. McNemar's test is based on: {#m5-a10}
+
+**Tests:** McNemar test; expected counts
+
+- A. All four cells compared with equal expected counts
+- **B. Only the discordant counts, 15 and 4  ← correct**
+- C. The row totals only
+- D. The 31 patients who did not change
+
+**Answer: B.** Under H0, changes are equally likely in each direction: (|15 − 4| − 1)²/19 = 5.26, p = .022 (Quiz 3–4 Q15).
+
+
+### M5-A12 · UCBAdmissions gender × admission: χ²(1) = 91.6, N = 4,526. Which statement is most accurate? {#m5-a12}
+
+**Tests:** chi-square test
+
+- A. A very strong association, because p is tiny
+- **B. φ ≈ 0.14: a significant but small association  ← correct**
+- C. No association
+- D. Gender causes admission decisions
+
+**Answer: B.** φ = √(χ²/N) = 0.14. With large N even weak associations are significant, and department is a confound (Simpson's paradox).
+
+
+### M5-A13 · The same 30 students' Maths and Physics marks are compared. Which test fits? {#m5-a13}
+
+**Tests:** chi-square test
+
+- A. Independent-samples t-test
+- **B. Paired-samples t-test  ← correct**
+- C. χ² test of independence
+- D. One-sample t-test on the Maths marks
+
+**Answer: B.** Two scores from each student are correlated, so analyse the differences (Quiz 3–4 Q5).
+
+
+### M5-A14 · Why does a Welch t-test report df = 18.33? {#m5-a14}
+
+**Tests:** Welch (t-test or ANOVA); SD / variance; missing values (NA)
+
+- A. A rounding error
+- **B. The Welch–Satterthwaite approximation from both groups' variances and sizes  ← correct**
+- C. 18 participants plus 0.33 missing
+- D. A correction for ties
+
+**Answer: B.** When equal variances aren't assumed, df is estimated and usually not a whole number. Report it with decimals: t(18.33).
+
+
+### M5-A15 · Load mtcars and run `t.test(mpg ~ vs, data = mtcars)`. Which statement is correct? {#m5-a15}
+
+**Tests:** t-test; Student t-test (equal variances); Welch (t-test or ANOVA); SD / variance  
+**Functions:** `t.test()`  
+**Data:** mtcars
+
+- A. There is no significant difference in mpg
+- **B. V-shaped engines (vs = 0) have significantly lower mean mpg  ← correct**
+- C. Straight engines (vs = 1) have significantly lower mean mpg
+- D. The test requires var.equal = TRUE
+
+**Answer: B.** Means 16.6 vs 24.6; Welch t(22.72) = −4.67, p = .0001. Welch is R's default and doesn't need equal variances.
+
+```{r}
+t.test(mpg ~ vs, data = mtcars)
+# t = -4.6671, df = 22.716, p-value = 0.0001098
+# mean in group 0 16.62   mean in group 1 24.56
+```
+
+
+### M5-A16 · Load sleep and run `t.test(extra ~ group, data = sleep)`, which gives p = .079. Which statement is correct? {#m5-a16}
+
+**Tests:** t-test; paired t-test; Welch (t-test or ANOVA)  
+**Data:** sleep
+
+- A. The drugs do not differ
+- **B. This treats each person's two scores as independent groups; the correct paired test gives p = .003  ← correct**
+- C. The test is correct because Welch is robust
+- D. Adding paired = TRUE to this formula call fixes it in R 4.6
+
+**Answer: B.** The sleep data are paired by ID. In R 4.6 the formula call with paired = TRUE errors, so use t.test(x2, x1, paired = TRUE).
+
+
+### M5-A17 · Group 1 (n = 10) has SD 4; group 2 (n = 40) has SD 1. If H0 is true, Student's t-test at α = .05 will: {#m5-a17}
+
+**Tests:** Student t-test (equal variances); Welch (t-test or ANOVA); standard error
+
+- **A. Reject far too often (≈ 30% false positives)  ← correct**
+- B. Be too conservative
+- C. Be fine, because the total n is 50
+- D. Give the same result as Welch
+
+**Answer: A.** Pooling under-weights the noisy small group, so the SE is too small. Welch stays near 5% (Section 8, Simulation 3).
+
+
+### M5-A18 · Which is the non-parametric alternative to the independent-samples t-test? {#m5-a18}
+
+**Tests:** Wilcoxon / Mann-Whitney (non-parametric); Fisher's exact test; McNemar test
+
+- A. Wilcoxon signed-rank test
+- **B. Mann–Whitney U test, wilcox.test(y ~ g)  ← correct**
+- C. McNemar's test
+- D. Fisher's exact test
+
+**Answer: B.** Signed-rank is for one sample or paired differences; McNemar and Fisher are for counts.
+
+
+## M5 · Which test? quiz (scenario → analysis)
+
+
+### M5-W1 · Reaction times of the same 20 people measured before and after caffeine. {#m5-w1}
+
+**Tests:** paired t-test; chi-square test
+
+- A. Independent t
+- **B. Paired t  ← correct**
+- C. χ² independence
+- D. One-sample t
+
+**Answer: B.** Same people twice → paired t-test on the differences (Quiz 3–4 Q5).
+
+
+### M5-W2 · Is the proportion of left-handers in a class of 120 different from the national 10%? {#m5-w2}
+
+**Tests:** chi-square test; chi-square goodness of fit; McNemar test; proportions
+
+- **A. χ² goodness of fit  ← correct**
+- B. χ² independence
+- C. McNemar
+- D. Paired t
+
+**Answer: A.** One categorical variable against specified proportions (.10/.90) → GOF, or binom.test(k, 120, p = .1).
+
+
+### M5-W3 · Is gender associated with preferred study method (3 options) among 150 students? {#m5-w3}
+
+**Tests:** Welch (t-test or ANOVA); chi-square test; chi-square goodness of fit; McNemar test
+
+- A. χ² goodness of fit
+- B. Welch t
+- **C. χ² test of independence  ← correct**
+- D. McNemar
+
+**Answer: C.** Two categorical variables, each person counted once → test of independence, df = (2−1)(3−1) = 2.
+
+
+### M5-W4 · A 2 × 2 table of treatment × recovery has expected counts of 2.1 and 3.4 in two cells. {#m5-w4}
+
+**Tests:** chi-square test; Fisher's exact test; McNemar test; expected counts; contingency table
+
+- A. χ² test of independence
+- **B. Fisher's exact test  ← correct**
+- C. McNemar
+- D. Paired t
+
+**Answer: B.** Expected counts below 5 → Fisher's exact test.
+
+
+### M5-W5 · 50 voters say yes/no to a policy before and after a debate. {#m5-w5}
+
+**Tests:** chi-square test; Fisher's exact test; McNemar test
+
+- A. χ² independence
+- **B. McNemar  ← correct**
+- C. Fisher
+- D. Two-sample t
+
+**Answer: B.** Paired binary data → McNemar's test, using only the people who switched.
+
+
+### M5-W6 · Exam scores of 25 students from section A vs 31 from section B; SDs 4 and 11. {#m5-w6}
+
+**Tests:** Student t-test (equal variances); Welch (t-test or ANOVA); chi-square test
+
+- A. Student t
+- **B. Welch t  ← correct**
+- C. Paired t
+- D. χ² independence
+
+**Answer: B.** Two independent groups with clearly unequal SDs → Welch (R's default).
+
+
+### M5-W7 · Is the mean IQ of 40 students different from 100? Scores look normal. {#m5-w7}
+
+**Tests:** Wilcoxon / Mann-Whitney (non-parametric); z-test
+
+- **A. One-sample t  ← correct**
+- B. z-test only
+- C. Paired t
+- D. Mann–Whitney
+
+**Answer: A.** One sample against a known value with σ unknown → one-sample t (a z-test needs σ known).
+
+
+### M5-W8 · Hospital stay (days) in two independent wards; heavily right-skewed, n = 12 per ward. {#m5-w8}
+
+**Tests:** Student t-test (equal variances); Wilcoxon / Mann-Whitney (non-parametric); chi-square test; chi-square goodness of fit; skewness
+
+- A. Student t
+- **B. Mann–Whitney (wilcox.test)  ← correct**
+- C. Paired t
+- D. χ² GOF
+
+**Answer: B.** Small, skewed, independent groups → non-parametric Mann–Whitney.
+
+
+### M5-W9 · Pain scores of 15 patients before and after physiotherapy; the differences are clearly non-normal. {#m5-w9}
+
+**Tests:** paired t-test; Welch (t-test or ANOVA); Wilcoxon / Mann-Whitney (non-parametric); McNemar test
+
+- **A. Wilcoxon signed-rank  ← correct**
+- B. Mann–Whitney
+- C. Welch t
+- D. McNemar
+
+**Answer: A.** Paired data with non-normal differences → wilcox.test(after, before, paired = TRUE).
+
+
+### M5-W10 · Does a 6-sided die produce each face equally often? 120 rolls. {#m5-w10}
+
+**Tests:** chi-square test; chi-square goodness of fit; Fisher's exact test
+
+- A. χ² independence
+- B. One-sample t
+- **C. χ² goodness of fit  ← correct**
+- D. Fisher
+
+**Answer: C.** One categorical variable (face) against equal probabilities → GOF, df = 5.
+
+
+# Module 6 · ANOVA, post hoc, two-way ANOVA, regression, diagnostics, categorical predictors, mixed models
+
+
+## M6 · Part B · Written and R questions (model answers)
+
+
+### M6-B1 · One-way ANOVA when the assumptions fail [15 marks] {#m6-b1}
+
+**Tests:** t-test; Welch (t-test or ANOVA); Shapiro-Wilk normality test; QQ plot; Levene's test (homogeneity of variance); ANOVA; Welch ANOVA; post hoc / multiple comparisons (Holm, Bonferroni); Kruskal-Wallis; eta squared (effect size); chi-square test; SD / variance; mean / median / mode; skewness; boxplot; missing values (NA); group summaries  
+**Functions:** `aggregate()`, `aov()`, `boxplot()`, `etaSquared()`, `factor()`, `is.na()`, `kruskal.test()`, `leveneTest()`, `mean()`, `median()`, `oneway.test()`, `pairwise.t.test()`, `residuals()`, `sd()`, `shapiro.test()`, `summary()`  
+**Data:** airquality
+
+**Question**
+
+Load the built-in `airquality` dataset. Does mean ozone concentration differ between the five months (May–September)? Use only rows with non-missing `Ozone`.
+
+(a) Convert `Month` to a factor. Draw a boxplot and report n, mean, SD and median per month. [2]
+(b) State the null and alternative hypotheses. [1]
+(c) Perform a one-way ANOVA and report F, both df, p and η². [3]
+(d) Test normality of the residuals and homogeneity of variance. [3]
+(e) Revise the analysis as required, justifying your choice. [3]
+(f) Run Holm-corrected pairwise t-tests and say which months differ. [3]
+
+**Model answer (code + interpretation)**
+
+```{r}
+library(car); library(lsr)
+aq <- airquality[!is.na(airquality$Ozone), ]
+aq$Month <- factor(aq$Month, labels = c("May", "Jun", "Jul", "Aug", "Sep"))
+boxplot(Ozone ~ Month, data = aq, ylab = "Ozone (ppb)")
+aggregate(Ozone ~ Month, aq, function(x) c(n = length(x), mean = mean(x), sd = sd(x), median = median(x)))
+#  May n 26 mean 23.6 sd 22.2 median 18 | Jun 9, 29.4, 18.2, 23 | Jul 26, 59.1, 31.6, 60
+#  Aug 26, 60.0, 39.7, 52              | Sep 29, 31.4, 24.1, 23
+a <- aov(Ozone ~ Month, data = aq); summary(a)     # F(4, 111) = 8.54, p = 4.8e-06
+etaSquared(a)                                      # 0.235
+shapiro.test(residuals(a))                         # W = 0.932, p = 1.8e-05 → non-normal
+leveneTest(Ozone ~ Month, data = aq)               # F(4, 111) = 3.96, p = 0.0049 → unequal variances
+kruskal.test(Ozone ~ Month, data = aq)             # chi-sq(4) = 29.27, p = 6.9e-06
+oneway.test(Ozone ~ Month, data = aq)              # Welch F(4, 42.67) = 8.03, p = 6.4e-05 (agrees)
+pairwise.t.test(aq$Ozone, aq$Month, p.adjust.method = "holm")
+#        May     Jun     Jul     Aug
+#  Jun 1.000     -       -       -
+#  Jul 0.0003  0.051     -       -
+#  Aug 0.0002  0.0499  1.000     -
+#  Sep 1.000   1.000   0.0049  0.0039
+```
+
+**(a)** Mean ozone is about twice as high in July and August (59–60 ppb) as in May, June and September (24–31). Every month is right-skewed (mean > median in May, Aug, Sep), and the spread grows with the level (SD 18–24 vs 32–40). June has only 9 non-missing days. **(b)** H0: μ_May = μ_Jun = μ_Jul = μ_Aug = μ_Sep; H1: not all equal. **(c)** F(4, 111) = 8.54, p < .001, η² = .24. **(d)** Both assumptions fail. Residuals are non-normal (W = .93, p < .001; the QQ plot curves up at the right). Variances are unequal (Levene F(4, 111) = 3.96, p = .005; SD ratio 2.2), and group sizes are unequal (9 to 29), which makes ANOVA more sensitive to this. **(e)** Use the course fallbacks. Normality fails, so run Kruskal–Wallis (ANOVA.Rmd, "removing the normality assumption"): χ²(4) = 29.3, p < .001, so ozone levels differ by month. Variances are unequal, so also run Welch's ANOVA with `oneway.test()` (ANOVA lecture: "if not homogeneous, run the oneway.test()"): F(4, 42.7) = 8.03, p < .001. Both agree with the original ANOVA. **(f)** Holm-corrected pairwise t-tests: July and August are higher than May (p = .0003, .0002) and higher than September (p = .005, .004). July and August don't differ (p = 1), and neither do May, June and September. June vs August is borderline (p = .0499) and June vs July is not significant (p = .051), probably because June has only 9 days. These t-tests assume normality and equal variances, which failed here, so say that the pattern is supported by the Kruskal–Wallis and Welch results.
+
+> Marking: descriptives with an observation about skew/spread (a); hypotheses (b); F with both df and η² (c); both tests named, with values and a verdict (d); a fallback that matches each failure (Kruskal–Wallis for normality, Welch for variance), with justification (e); Holm-corrected comparisons with the pattern described and the caveat about the failed assumptions (f).
+
+
+### M6-B2 · Two-way ANOVA with an interaction [15 marks] {#m6-b2}
+
+**Tests:** Shapiro-Wilk normality test; Levene's test (homogeneity of variance); ANOVA; Tukey HSD post hoc; interaction; eta squared (effect size); transformation (log / sqrt); SD / variance; group summaries  
+**Functions:** `aggregate()`, `aov()`, `etaSquared()`, `interaction.plot()`, `leveneTest()`, `log()`, `residuals()`, `shapiro.test()`, `summary()`, `TukeyHSD()`, `with()`  
+**Data:** warpbreaks
+
+**Question**
+
+The built-in `warpbreaks` data record the number of warp breaks per loom for two wool types (A, B) at three tension levels (L, M, H), 9 looms per cell.
+
+(a) Report the six cell means and draw an interaction plot. Describe the pattern. [2]
+(b) State the three null hypotheses tested by a two-way ANOVA. [2]
+(c) Fit `breaks ~ wool * tension` and report each effect. [3]
+(d) Report partial η² for each effect. [1]
+(e) Check normality of residuals and homogeneity of variance across cells. Revise the analysis if required, and say whether the conclusions change. [4]
+(f) Use Tukey's HSD on the interaction to identify which cell(s) drive it. [3]
+
+**Model answer (code + interpretation)**
+
+```{r}
+library(car); library(lsr)
+aggregate(breaks ~ wool + tension, warpbreaks, mean)
+#        L     M     H
+#  A  44.56 24.00 24.56
+#  B  28.22 28.78 18.78
+with(warpbreaks, interaction.plot(x.factor = tension, trace.factor = wool, response = breaks))
+wb <- aov(breaks ~ wool * tension, data = warpbreaks); summary(wb)
+#  wool          F(1, 48) = 3.77  p = 0.058
+#  tension       F(2, 48) = 8.50  p = 0.00069
+#  wool:tension  F(2, 48) = 4.19  p = 0.021
+etaSquared(wb)        # partial: wool 0.07, tension 0.26, wool:tension 0.15
+shapiro.test(residuals(wb))                          # W = 0.987, p = 0.82
+leveneTest(breaks ~ wool * tension, warpbreaks)      # F(5, 48) = 2.89, p = 0.023 → unequal
+wbl <- aov(log(breaks) ~ wool * tension, warpbreaks); summary(wbl)
+#  wool p = 0.14   tension F(2, 48) = 7.78 p = 0.0012   wool:tension F(2, 48) = 3.26 p = 0.047
+leveneTest(log(breaks) ~ wool * tension, warpbreaks)  # p = 0.74 → fixed
+shapiro.test(residuals(wbl))                          # p = 0.26
+TukeyHSD(wb, "wool:tension")
+#  every comparison with A:L is significant: B:L-A:L -16.3 (p = .030), A:M-A:L -20.6 (.003),
+#  B:M-A:L -15.8 (.040), A:H-A:L -20.0 (.004), B:H-A:L -25.8 (.0001); no other pair p < .05
+```
+
+**(a)** Breaks fall as tension increases, but not in the same way for each wool: wool A drops sharply from L (44.6) to M (24.0) and then levels off, while wool B stays around 28 at L and M and falls only at H (18.8). The lines cross between L and M: an interaction. **(b)** No main effect of wool (μ_A = μ_B averaged over tension); no main effect of tension (μ_L = μ_M = μ_H averaged over wool); no interaction (the tension effect is the same for both wools). **(c)** Tension F(2, 48) = 8.50, p < .001. Wool F(1, 48) = 3.77, p = .058 (not significant). Interaction F(2, 48) = 4.19, p = .021. **(d)** Partial η²: wool .07, tension .26, interaction .15. **(e)** Residuals are normal (p = .82), but cell variances differ (Levene p = .023). The course's fix for a violated assumption in a linear model is to transform the outcome (regression lecture: "If there is severe violation, transform the data. Eg: Log"), and `aov()` is a linear model. On log(breaks), Levene p = .74 and Shapiro p = .26, so both assumptions are met. Tension (p = .001) and the interaction (p = .047) remain significant and wool remains non-significant, so the conclusions don't change; the interaction is weaker. **(f)** The interaction is driven by one cell: wool A at low tension (44.6 breaks) is higher than every other cell (all p ≤ .04), and no other pair differs. So the "tension effect" is mainly wool A's problem at low tension.
+
+> Marking: cell means + described pattern (a); all three H0s (b); F(df1, df2) and p for each line (c); partial η² (d); Levene on the *cells*, the transform, the re-check, and the comparison of conclusions (e); naming A:L as the source (f).
+
+
+### M6-B3 · Multiple regression with diagnostics (Quiz 6 format) [15 marks] {#m6-b3}
+
+**Tests:** Shapiro-Wilk normality test; Tukey HSD post hoc; chi-square test; linear regression (lm); heteroscedasticity test (ncvTest); VIF / multicollinearity; Cook's distance / influential points; linearity check; linear mixed model (lmer); transformation (log / sqrt); power / sample size; SD / variance  
+**Functions:** `cooks.distance()`, `lm()`, `log()`, `na.omit()`, `ncvTest()`, `powerTransform()`, `residualPlots()`, `residuals()`, `shapiro.test()`, `summary()`, `vif()`  
+**Data:** airquality
+
+**Question**
+
+Using `airquality` (complete cases of Ozone, Solar.R, Wind, Temp), fit a multiple linear regression with **Ozone** as the dependent variable and **Solar.R, Wind and Temp** as predictors.
+
+(a) **Fit the model.** Write the fitted equation, report the overall F-statistic and its p-value, and interpret R² and adjusted R². [3]
+(b) **Interpret the predictors.** Report coefficients and p-values; which contribute significantly at α = .05 after accounting for the others? Interpret their direction. [3]
+(c) **Check model assumptions:** linearity, normality of residuals, homoscedasticity, independence, multicollinearity, influential observations. State your finding for each. [6]
+(d) **Revise and conclude.** Propose and fit a revised model that addresses the violations, and write a short conclusion. [3]
+
+**Model answer (code + interpretation)**
+
+```{r}
+library(car)
+aq <- na.omit(airquality[, c("Ozone", "Solar.R", "Wind", "Temp")])    # n = 111
+a1 <- lm(Ozone ~ Solar.R + Wind + Temp, data = aq); summary(a1)
+#  (Intercept) -64.34   Solar.R 0.0598 (p = 0.011)   Wind -3.334 (p = 1.5e-06)   Temp 1.652 (p = 2.4e-09)
+#  R² = 0.606, adj R² = 0.595, F(3, 107) = 54.83, p < 2.2e-16
+residualPlots(a1)               # Wind p = 5.1e-07, Temp p = 0.0002, Tukey p = 7.2e-09 → curvature
+shapiro.test(residuals(a1))     # W = 0.917, p = 3.6e-06 → non-normal (right tail)
+ncvTest(a1)                     # chi-sq(1) = 5.38, p = 0.020 → heteroscedastic
+# independence: one row per day, no repeated measures of the same unit → argue from the design
+vif(a1)                         # 1.10, 1.33, 1.43 → fine
+cd <- cooks.distance(a1); max(cd); sum(cd > 4/111)   # max 0.26 (day 117: Ozone 168), 6 above 4/N, none > 1
+# revision
+summary(powerTransform(a1))     # Box-Cox power 0.22, rounded 0.33 → cube root of Ozone
+aq$oz3 <- aq$Ozone^(1/3)        # Box-Cox with power 1/3
+aq$logWind <- log(aq$Wind)      # log of a predictor, as in the lecture: lm(log(y) ~ log(x) + ...)
+a2 <- lm(oz3 ~ Solar.R + logWind + Temp, data = aq); summary(a2)
+#  oz3 = 1.00 + 0.0022 Solar.R - 0.808 logWind + 0.0468 Temp;  R² = 0.705, adj 0.697, F(3, 107) = 85.2
+shapiro.test(residuals(a2)); ncvTest(a2)   # p = 0.37, 0.31 → normality and variance fixed
+residualPlots(a2)               # logWind p = 0.27, Temp p = 0.020, Tukey p = 0.022 → mild curvature left
+```
+
+**(a)** Ozone = −64.34 + 0.060 Solar.R − 3.33 Wind + 1.65 Temp. F(3, 107) = 54.8, p < .001. R² = .61: the predictors explain 61% of day-to-day variation in ozone. Adjusted R² = .59 is close, so there is little over-fitting. **(b)** All three are significant. Temperature: +1.65 ppb per °F (p < .001). Wind: −3.33 ppb per mph (p < .001), since wind disperses ozone. Solar radiation: +0.06 ppb per Langley (p = .011), since sunlight drives ozone formation. Each is adjusted for the other two.
+
+| Check | Finding |
+|---|---|
+| Linearity | **Violated.** Curvature for Wind (p < .001) and Temp (p < .001); residual-vs-fitted is U-shaped (Tukey p < .001). |
+| Normality | **Violated.** W = .92, p < .001; long right tail (a few very high-ozone days). |
+| Homoscedasticity | **Violated.** ncvTest p = .020; residual spread grows with fitted ozone (funnel). |
+| Independence | **Assumed from the design.** Each row is a different day; there are no repeated measurements of the same unit (the case where the regression lecture says to move to a mixed model). Consecutive days may share weather, which is a limitation. |
+| Multicollinearity | VIFs 1.1–1.4: none. |
+| Influence | Day 117 (Ozone 168, the maximum) has Cook's D = 0.26: the largest, above 4/N = .036 but below 1. Six days exceed 4/N. Worth a refit check, but none is extreme. |
+
+**(d)** The regression lecture's fix for severe violations is to transform the data ("Log or Box-Cox or powerTransform"). `powerTransform()` estimates a Box-Cox power of 0.22, so model the cube root of Ozone; following the lecture's `lm(log(y) ~ log(x) + ...)` example, use log(Wind) for the curved wind effect. The revised model explains more variance (R² = .71 vs .61), and its residuals are normal (Shapiro p = .37) with constant variance (ncvTest p = .31). The wind curvature is gone (p = .27); slight curvature in Temp remains (p = .02), which should be reported. *Conclusion:* "Ozone rises with temperature and solar radiation and falls with wind speed, with the wind effect strongest at low speeds. The original linear model was significant (R² = .61) but violated linearity, normality and constant variance. A model for the cube root of ozone with log wind speed fixes normality and constant variance and explains 71% of the variance; mild curvature in temperature remains. Limitations: complete cases only (111 of 153 days), consecutive days may not be independent, one summer of one city, and observational data."
+
+> Marking mirrors Quiz 6: equation + F + R²/adjusted R² (a); coefficients with p and direction (b); one mark per assumption, each with a test or plot *and* a verdict (c); a sensible revision that is re-checked, plus a conclusion with limitations (d).
+
+
+### M6-B4 · Regression with a categorical predictor [10 marks] {#m6-b4}
+
+**Tests:** ANOVA; Tukey HSD post hoc; post hoc / multiple comparisons (Holm, Bonferroni); eta squared (effect size); linear regression (lm); predict(); categorical predictors / dummy coding; SD / variance; proportions  
+**Functions:** `aov()`, `coef()`, `data.frame()`, `levels()`, `lm()`, `predict()`, `relevel()`, `summary()`  
+**Data:** chickwts
+
+**Question**
+
+The built-in `chickwts` data give chick weights (g) after six weeks on one of six feeds.
+
+(a) Fit `lm(weight ~ feed)`. Which feed is the reference level, and what does the intercept represent? [2]
+(b) Interpret the coefficients for horsebean and sunflower. [2]
+(c) Show that the model's F-test is the one-way ANOVA. What does R² correspond to? [2]
+(d) Make horsebean the reference level and refit. What changes and what doesn't? [2]
+(e) Why are the coefficient p-values not a substitute for post hoc tests? [2]
+
+**Model answer (code + interpretation)**
+
+```{r}
+levels(chickwts$feed)       # "casein" "horsebean" "linseed" "meatmeal" "soybean" "sunflower"
+cm <- lm(weight ~ feed, data = chickwts); summary(cm)
+#  (Intercept)   323.58          feedmeatmeal  -46.67 (p = 0.046)
+#  feedhorsebean -163.38 (p = 2e-09)   feedsoybean  -77.16 (p = 0.0007)
+#  feedlinseed   -104.83 (p = 1.5e-05) feedsunflower  +5.33 (p = 0.81)
+#  R² = 0.542, F(5, 65) = 15.36, p = 5.9e-10
+summary(aov(weight ~ feed, chickwts))     # F(5, 65) = 15.37, p = 5.94e-10 (identical)
+cw <- chickwts; cw$feed <- relevel(cw$feed, ref = "horsebean")
+coef(lm(weight ~ feed, data = cw))
+#  (Intercept) 160.20  casein 163.38  linseed 58.55  meatmeal 116.71  soybean 86.23  sunflower 168.72
+predict(cm, data.frame(feed = levels(chickwts$feed)))    # the six group means
+```
+
+**(a)** R uses the first level alphabetically, so **casein** is the reference. The intercept, 323.6 g, is the mean weight of casein-fed chicks. **(b)** Horsebean chicks weigh 163.4 g less than casein chicks on average (160.2 g; p < .001). Sunflower chicks weigh 5.3 g more than casein chicks (328.9 g), a difference that is not significant (p = .81). **(c)** The regression F(5, 65) = 15.36, p < .001, equals the one-way ANOVA F; R² = .54 is the ANOVA's η², the proportion of weight variance explained by feed. **(d)** The intercept becomes the horsebean mean (160.2), and every coefficient is now a difference from horsebean. The fitted group means, residuals, R², F and p are unchanged: it's the same model, described from a different baseline. **(e)** The 5 coefficient tests only compare each feed with the reference (15 pairs are possible), and they are uncorrected for multiple testing. Use `TukeyHSD(aov(weight ~ feed, chickwts))` or Holm-corrected pairwise t-tests.
+
+> Marking: reference + intercept meaning (a); difference-from-reference wording with direction and significance (b); F match + R² = η² (c); what changes vs what is invariant (d); reference-only + no correction (e).
+
+
+### M6-B5 · A linear mixed model on the course RT dataset [10 marks] {#m6-b5}
+
+**Tests:** Shapiro-Wilk normality test; ANOVA; chi-square test; correlation (Pearson / Spearman); linear regression (lm); linear mixed model (lmer); REML vs ML; singular fit; standard error; IQR / quartiles / outliers; group summaries; contingency table  
+**Functions:** `aggregate()`, `anova()`, `factor()`, `lmer()`, `read.csv()`, `residuals()`, `shapiro.test()`, `sort()`, `summary()`, `table()`  
+**Data:** BSE658_rt_experiment
+
+**Question**
+
+Load `RT dataset\BSE658_rt_experiment.csv` from your course folder: reaction times (ms) of 30 participants, each tested in a **control** and a **stress** condition, 6 trials per condition.
+
+(a) Describe the data structure. Why is `lm(rt ~ condition)` inappropriate? [2]
+(b) Fit a mixed model with condition as a fixed effect and a random intercept for participant. Report and interpret the condition effect. [2]
+(c) Test the condition effect with a likelihood-ratio test. [2]
+(d) Add a random slope for condition. What happens, and which model do you keep? [2]
+(e) Check the residuals. Identify any problem in the data, deal with it, and refit. Do the conclusions change? [2]
+
+**Model answer (code + interpretation)**
+
+```{r}
+library(lme4); library(lmerTest)
+rt <- read.csv("RT dataset/BSE658_rt_experiment.csv")
+rt$condition <- factor(rt$condition); rt$participant <- factor(rt$participant)
+table(rt$participant, rt$condition)[1:3, ]        # 6 + 6 trials each, 30 participants → 360 rows
+aggregate(rt ~ condition, rt, mean)               # control 509.0, stress 561.3
+m1 <- lmer(rt ~ condition + (1 | participant), data = rt); summary(m1)
+#  conditionstress 52.31 (SE 9.40, df 329, t = 5.56, p = 5.5e-08); participant SD 42.7, residual SD 89.2
+full <- lmer(rt ~ condition + (1 | participant), rt, REML = FALSE)
+null <- lmer(rt ~ 1 + (1 | participant), rt, REML = FALSE)
+anova(null, full)                                  # chi-sq(1) = 29.67, p = 5.1e-08
+m2 <- lmer(rt ~ condition + (1 + condition | participant), data = rt)
+#  boundary (singular) fit; random-effect correlation = -1.00
+anova(m1, m2, refit = FALSE)                       # chi-sq(2) = 2.42, p = 0.30 → keep m1
+shapiro.test(residuals(m1))                        # W = 0.915, p = 2e-13 → non-normal
+sort(rt$rt)[1:8]                                   # 135 136 142 160 161 162 178 | 251 ...
+r2 <- rt[rt$rt >= 200, ]                          # drop the 7 extreme fast RTs → 353 rows
+m3 <- lmer(rt ~ condition + (1 | participant), data = r2); summary(m3)
+#  conditionstress 51.08 (SE 7.59, t = 6.73, p = 7.9e-11)
+shapiro.test(residuals(m3))                        # p = 0.96 → fixed
+```
+
+**(a)** 360 rows, but only 30 independent units: each participant contributes 12 trials, 6 in *each* condition (repeated measures, within-subjects). Rows from the same person share that person's speed, so they are correlated. `lm()` treats 360 rows as independent, which violates independence and mis-states the standard error. **(b)** RT is 52.3 ms slower under stress (SE 9.4, t(329) = 5.56, p < .001), from a control baseline of 509 ms. Participants' baselines vary with SD ≈ 43 ms. **(c)** Comparing ML fits with and without condition: χ²(1) = 29.7, p < .001; adding condition improves the model. **(d)** The random-slope model is **singular** (slope–intercept correlation of −1.00) and doesn't improve fit (χ²(2) = 2.42, p = .30). The data can't support participant-specific stress effects, so keep the random-intercept model. **(e)** Residuals are clearly non-normal (p < .001), caused by 7 implausibly fast responses (135–178 ms; the next fastest is 251 ms). They are outliers, far from the rest of the data. Refit without them, as the regression lecture does with its outlier ("lm() without the outlier"): the residuals become normal (p = .96). The stress effect is essentially unchanged (51.1 ms, p < .001) and more precise (SE 7.6), so the conclusion holds.
+
+> Marking: repeated-measures explanation (a); effect size in ms + test (b); ML refit + χ²(df) (c); singular fit recognised and the simpler model kept (d); outlier diagnosis, refit without the outliers, comparison (e).
+
+
+## M6 · Quiz 5 Q1 and Quiz 6, fully solved
+
+
+### M6-PAST1 · Quiz 5 Q1 · PlantGrowth: one-way ANOVA, post hoc test, test all assumptions (normality, homogeneity of variance) and revise as required. {#m6-past1}
+
+**Tests:** t-test; Welch (t-test or ANOVA); Shapiro-Wilk normality test; QQ plot; Levene's test (homogeneity of variance); ANOVA; Welch ANOVA; Tukey HSD post hoc; post hoc / multiple comparisons (Holm, Bonferroni); Kruskal-Wallis; eta squared (effect size); chi-square test; normal distribution; confidence interval; SD / variance; mean / median / mode; boxplot; group summaries  
+**Functions:** `aggregate()`, `aov()`, `boxplot()`, `by()`, `etaSquared()`, `kruskal.test()`, `leveneTest()`, `mean()`, `oneway.test()`, `pairwise.t.test()`, `qqnorm()`, `residuals()`, `sd()`, `shapiro.test()`, `summary()`, `TukeyHSD()`  
+**Data:** PlantGrowth
+
+```{r}
+data(PlantGrowth); library(car); library(lsr)
+aggregate(weight ~ group, PlantGrowth, function(x) c(n = length(x), mean = mean(x), sd = sd(x)))
+#  ctrl n 10 mean 5.032 sd 0.583 | trt1 4.661 sd 0.794 | trt2 5.526 sd 0.443
+boxplot(weight ~ group, data = PlantGrowth, ylab = "dried weight")
+pg <- aov(weight ~ group, data = PlantGrowth)
+summary(pg)                      # F(2, 27) = 4.846, p = 0.0159
+etaSquared(pg)                   # eta² = 0.26
+TukeyHSD(pg)
+#   trt1-ctrl -0.371 [-1.062, 0.320] p = 0.391
+#   trt2-ctrl  0.494 [-0.197, 1.185] p = 0.198
+#   trt2-trt1  0.865 [ 0.174, 1.556] p = 0.012
+pairwise.t.test(PlantGrowth$weight, PlantGrowth$group, p.adjust.method = "holm")   # 0.194, 0.175, 0.013
+# assumptions
+shapiro.test(residuals(pg))                          # W = 0.966, p = 0.438
+by(PlantGrowth$weight, PlantGrowth$group, shapiro.test)   # p = 0.75, 0.45, 0.56
+qqnorm(residuals(pg))
+leveneTest(weight ~ group, data = PlantGrowth)       # F(2, 27) = 1.12, p = 0.341
+# robustness (not required, since both checks pass)
+oneway.test(weight ~ group, data = PlantGrowth)      # Welch F(2, 17.13) = 5.18, p = 0.017
+kruskal.test(weight ~ group, data = PlantGrowth)     # chi-sq(2) = 7.99, p = 0.018
+```
+
+**Answer.** H0: μ_ctrl = μ_trt1 = μ_trt2; H1: not all equal. One-way ANOVA: F(2, 27) = 4.85, p = .016, η² = .26, so mean plant weight differs across conditions. Tukey HSD shows the difference is between the two treatments: trt2 plants were 0.87 g heavier than trt1 plants (95% CI [0.17, 1.56], p = .012). Neither treatment differed significantly from control (trt1 p = .39, trt2 p = .20). **Assumptions:** residuals are normal (Shapiro–Wilk W = 0.97, p = .44; the QQ plot is close to the line), and variances are homogeneous (Levene F(2, 27) = 1.12, p = .34; SD ratio 1.8). Observations are independent plants. No revision is needed. As a check, Welch's ANOVA (p = .017) and Kruskal–Wallis (p = .018) agree. If Levene had failed you would report Welch; if normality had failed, Kruskal–Wallis.
+
+> Where marks go: correct ANOVA with F(df1, df2) and p; a post hoc test with the pair identified; both assumption tests *named, run and interpreted*; and an explicit statement that no revision is needed (or the right fallback).
+
+
+### M6-PAST2 · Quiz 6 · swiss: Fertility ~ Education + Agriculture + Infant.Mortality. Fit, interpret predictors, check six assumptions, conclude (15 marks). {#m6-past2}
+
+**Tests:** Shapiro-Wilk normality test; QQ plot; Tukey HSD post hoc; chi-square test; linear regression (lm); heteroscedasticity test (ncvTest); VIF / multicollinearity; Cook's distance / influential points; linearity check; linear mixed model (lmer); confidence interval; standard error; SD / variance  
+**Functions:** `coef()`, `confint()`, `cooks.distance()`, `lm()`, `ncvTest()`, `par()`, `plot()`, `residualPlots()`, `residuals()`, `shapiro.test()`, `sort()`, `summary()`, `update()`, `vif()`, `which.max()`  
+**Data:** swiss
+
+```{r}
+library(car)
+m <- lm(Fertility ~ Education + Agriculture + Infant.Mortality, data = swiss)
+summary(m); confint(m)
+```
+
+```text
+                 Estimate Std. Error t value Pr(>|t|)
+(Intercept)      51.10129   10.99484   4.648 3.18e-05 ***
+Education        -0.85697    0.17258  -4.966 1.13e-05 ***
+Agriculture      -0.02618    0.07284  -0.359  0.72107
+Infant.Mortality  1.49308    0.43880   3.403  0.00145 **
+Residual standard error: 8.511 on 43 degrees of freedom
+Multiple R-squared:  0.5661,	Adjusted R-squared:  0.5358
+F-statistic:  18.7 on 3 and 43 DF,  p-value: 6.517e-08
+```
+
+**1. Fit (3).** Fertility = 51.10 − 0.857 Education − 0.026 Agriculture + 1.493 Infant.Mortality. The model is significant: F(3, 43) = 18.7, p < .001. R² = .566, so the three predictors together explain 57% of the variance in fertility across the 47 provinces. Adjusted R² = .536 is slightly lower because it penalises the three predictors; the small gap shows the model is not over-fitted.
+
+**2. Predictors (3).** Education: b = −0.86, p < .001, 95% CI [−1.21, −0.51]. Each extra percentage point of education beyond primary school predicts 0.86 points lower fertility, holding the others constant. Infant mortality: b = 1.49, p = .001, CI [0.61, 2.38]; higher infant mortality goes with higher fertility. Agriculture: b = −0.03, p = .72, CI [−0.17, 0.12], not significant *after accounting for the other predictors*. (On its own Agriculture correlates +.35 with Fertility, but it is strongly correlated with Education, r = −.64, which takes over its effect.) Standardised: Education β = −0.66, Infant.Mortality 0.35, Agriculture −0.05.
+
+```{r}
+residualPlots(m)               # Education p = 0.94, Agriculture 0.37, Infant.Mortality 0.45, Tukey 0.89
+shapiro.test(residuals(m))     # W = 0.975, p = 0.418
+ncvTest(m)                     # chi-sq(1) = 0.93, p = 0.334
+# independence: one row per province, no repeated measures → argue from the design
+vif(m)                         # 1.75, 1.74, 1.04
+cd <- cooks.distance(m); sort(cd, decreasing = TRUE)[1:3]   # Sierre 0.196, Glane 0.075, Franches-Mnt 0.063
+4 / 47                         # 0.085 → only Sierre exceeds it; none exceeds 1
+plot(m, which = 4)             # Cook's distance plot
+coef(update(m, subset = -which.max(cd)))   # without Sierre: Edu -0.85, Agri -0.06, IM 1.70 → same conclusions
+par(mfrow = c(2, 2)); plot(m)
+```
+
+| Assumption (6 marks) | Evidence | Verdict |
+|---|---|---|
+| Linearity | residual-vs-fitted shows no curve; curvature tests all p > .37, Tukey p = .89 | met |
+| Normality of residuals | QQ close to the line; Shapiro–Wilk W = .975, p = .42 | met |
+| Homoscedasticity | no funnel in scale-location; ncvTest χ²(1) = 0.93, p = .33 | met |
+| Independence | Each province appears once; there are no repeated measurements of the same unit (the case where the regression lecture says to move to a mixed model). Neighbouring provinces may be similar, which is worth noting as a limitation. | met by design |
+| Multicollinearity | all VIF < 2 (Education–Agriculture r = −.64 is the main overlap) | met |
+| Influential points | no Cook's D > 1; Sierre (0.20) is above 4/N and V. De Geneve has high leverage (0.45), but refitting without Sierre leaves every conclusion unchanged | acceptable |
+
+**4. Conclusion (3), about 130 words.** "A multiple regression showed that education, agriculture and infant mortality together significantly predicted fertility across 47 Swiss provinces, F(3, 43) = 18.7, p < .001, explaining 57% of the variance (adjusted R² = .54). Education was the strongest predictor: more educated provinces had lower fertility (b = −0.86, p < .001). Higher infant mortality was associated with higher fertility (b = 1.49, p = .001). Agriculture made no unique contribution once the other predictors were controlled (p = .72), probably because it overlaps with education. Linearity, normality, constant variance and multicollinearity were satisfactory, and no single province drove the results. Neighbouring provinces may share regional characteristics, so the observations may not be fully independent. The data are observational and from 1888, so the associations cannot be read as causal."
+
+> The independence check is the one most answers skip. The course checks it from the design: say whether any unit contributes more than one row (here, no: one row per province), and that repeated measures would call for a mixed model.
+
+
+## M6 · Part A · MCQs with answers (+1 / −0.25)
+
+
+### M6-A1 · A one-way ANOVA compares 4 groups with 10 participants each. What are the degrees of freedom of F? {#m6-a1}
+
+**Tests:** ANOVA
+
+- A. F(3, 39)
+- B. F(4, 36)
+- C. F(4, 40)
+- **D. F(3, 36)  ← correct**
+
+**Answer: D.** df_b = G − 1 = 3; df_w = N − G = 40 − 4 = 36.
+
+
+### M6-A2 · In a one-way ANOVA with 3 groups and N = 33, SS_between = 30 and SS_within = 60. What is F? {#m6-a2}
+
+**Tests:** ANOVA; eta squared (effect size); F distribution (pf / qf)  
+**Functions:** `pf()`
+
+- A. 2
+- **B. 7.5  ← correct**
+- C. 0.5
+- D. 15
+
+**Answer: B.** MS_b = 30/2 = 15; MS_w = 60/30 = 2; F = 7.5 (p = .002). η² = 30/90 = .33.
+
+```{r}
+pf(7.5, 2, 30, lower.tail = FALSE)   # 0.0023
+```
+
+
+### M6-A3 · Load PlantGrowth and run `summary(aov(weight ~ group, data = PlantGrowth))`. Which conclusion is correct? {#m6-a3}
+
+**Tests:** ANOVA; Tukey HSD post hoc  
+**Functions:** `aov()`, `summary()`  
+**Data:** PlantGrowth
+
+- A. All three groups differ from each other
+- B. There is no difference at α = .05
+- **C. At least one group mean differs: F(2, 27) = 4.85, p = .016  ← correct**
+- D. Both treatments differ from the control
+
+**Answer: C.** ANOVA only says "not all equal". Tukey later shows that only trt2 vs trt1 differs (p = .012).
+
+```{r}
+summary(aov(weight ~ group, data = PlantGrowth))
+```
+
+Output:
+
+```text
+            Df Sum Sq Mean Sq F value Pr(>F)
+group        2  3.766  1.8832   4.846 0.0159 *
+Residuals   27 10.492  0.3886
+```
+
+
+### M6-A4 · With 5 groups, why not simply run every pairwise t-test at α = .05? {#m6-a4}
+
+**Tests:** ANOVA
+
+- A. ANOVA has more assumptions
+- **B. 10 tests give about a 40% chance of at least one false positive  ← correct**
+- C. t-tests need equal n
+- D. t-tests cannot compare means
+
+**Answer: B.** 5 groups → 10 pairs; 1 − 0.95¹⁰ = .40. ANOVA plus a corrected post hoc test keeps the familywise rate at .05.
+
+
+### M6-A5 · Raw p-values from three comparisons are .01, .02 and .04. What are the Holm-adjusted values? {#m6-a5}
+
+**Tests:** post hoc / multiple comparisons (Holm, Bonferroni); contingency table
+
+- A. .03, .06, .12
+- B. .01, .02, .04
+- C. .03, .04, .12
+- **D. .03, .04, .04  ← correct**
+
+**Answer: D.** Sorted: .01 × 3 = .03; .02 × 2 = .04; .04 × 1 = .04. (Bonferroni would give .03, .06, .12.)
+
+```{r}
+p <- c(.01, .02, .04)     # already sorted, smallest first
+p * c(3, 2, 1)            # Holm: 0.03 0.04 0.04
+p * 3                     # Bonferroni: 0.03 0.06 0.12
+```
+
+
+### M6-A6 · A one-way ANOVA gives η² = 0.26. This means: {#m6-a6}
+
+**Tests:** ANOVA; eta squared (effect size); SD / variance; proportions
+
+- A. 26% of participants improved
+- B. The groups differ by 0.26 SD
+- **C. 26% of the variance in the outcome is explained by group membership  ← correct**
+- D. p = .26
+
+**Answer: C.** η² = SS_between / SS_total: a proportion of variance explained (a large effect by the usual benchmarks).
+
+
+### M6-A7 · Residuals of a one-way ANOVA are normal, but Levene's test gives p = .004. Which analysis should you report? {#m6-a7}
+
+**Tests:** Welch (t-test or ANOVA); Levene's test (homogeneity of variance); ANOVA; Welch ANOVA; Kruskal-Wallis; chi-square test; SD / variance
+
+- **A. oneway.test() (Welch ANOVA)  ← correct**
+- B. chisq.test()
+- C. kruskal.test()
+- D. The ordinary ANOVA, because it is robust
+
+**Answer: A.** Unequal variances alone → Welch's ANOVA. Non-normal residuals → Kruskal–Wallis.
+
+
+### M6-A8 · In a one-way ANOVA, the normality assumption should be checked on: {#m6-a8}
+
+**Tests:** ANOVA
+
+- A. The group means
+- B. The raw outcome pooled across all groups
+- **C. The residuals of the model (or each group separately)  ← correct**
+- D. The F statistic
+
+**Answer: C.** Pooling raw data from groups with different means can look non-normal even when each group is normal.
+
+
+### M6-A9 · Load ToothGrowth (dose is numeric: 0.5, 1, 2) and run the code below. How many df does dose get? {#m6-a9}
+
+**Tests:** ANOVA  
+**Functions:** `aov()`, `summary()`  
+**Data:** ToothGrowth
+
+```{r}
+summary(aov(len ~ supp * dose, data = ToothGrowth))
+```
+
+- **A. 1, because dose is treated as a numeric covariate  ← correct**
+- B. It gives an error
+- C. 3
+- D. 2, because dose has three levels
+
+**Answer: A.** aov() treats a numeric variable as one continuous predictor. Convert it first: ToothGrowth\$dose <- factor(ToothGrowth\$dose), and dose then has 2 df.
+
+
+### M6-A10 · In an interaction plot of a two-way ANOVA the lines cross. This suggests: {#m6-a10}
+
+**Tests:** ANOVA; interaction
+
+- **A. An interaction: the effect of one factor depends on the level of the other  ← correct**
+- B. Both main effects are significant
+- C. The residuals are non-normal
+- D. No interaction
+
+**Answer: A.** Parallel lines = no interaction. Crossing lines = a crossover interaction, where the main effects can be zero even though both factors matter.
+
+
+### M6-A11 · Load warpbreaks and run `summary(aov(breaks ~ wool * tension, warpbreaks))`. Which statement is correct? {#m6-a11}
+
+**Tests:** ANOVA; interaction  
+**Data:** warpbreaks
+
+- A. Wool A always breaks less
+- B. The interaction is not significant
+- C. Only tension matters, because wool p = .058
+- **D. The effect of tension on breaks depends on the wool type (interaction p = .021)  ← correct**
+
+**Answer: D.** wool F(1, 48) = 3.77, p = .058; tension F(2, 48) = 8.50, p < .001; wool:tension F(2, 48) = 4.19, p = .021. Wool A at low tension is the outlying cell.
+
+
+### M6-A12 · `lm(mpg ~ wt, data = mtcars)` gives a slope of −5.34. The correct interpretation is: {#m6-a12}
+
+**Tests:** linear regression (lm); SD / variance  
+**Data:** mtcars
+
+- A. 5.34% of the variance is explained
+- B. Heavier cars cause 5.34% lower mileage
+- **C. Each extra 1,000 lb of weight predicts 5.34 mpg less  ← correct**
+- D. mpg falls by 5.34 for every 1 lb
+
+**Answer: C.** wt is in 1000 lb. "Predicts", not "causes": the data are observational.
+
+
+### M6-A13 · In a simple regression the correlation between X and Y is r = −0.868. What is R²? {#m6-a13}
+
+**Tests:** correlation (Pearson / Spearman)
+
+- A. 0.932
+- **B. 0.753  ← correct**
+- C. −0.868
+- D. 0.868
+
+**Answer: B.** In simple regression R² = r² = 0.753 (mtcars mpg ~ wt).
+
+
+### M6-A14 · In `lm(mpg ~ wt + hp, mtcars)` the wt coefficient is −3.88 (it was −5.34 in mpg ~ wt). Why did it change? {#m6-a14}
+
+**Tests:** linear regression (lm); power / sample size  
+**Data:** mtcars
+
+- **A. It is now the effect of weight holding horsepower constant; heavier cars also tend to be more powerful  ← correct**
+- B. Adding predictors always halves slopes
+- C. A rounding difference
+- D. hp is a categorical variable
+
+**Answer: A.** Multiple-regression coefficients are partial effects. Part of weight's simple effect was shared with horsepower.
+
+
+### M6-A15 · You add a predictor of pure random noise to a regression. What happens to R² and adjusted R²? {#m6-a15}
+
+- A. Neither changes
+- B. Both fall
+- **C. R² rises slightly (or stays the same); adjusted R² usually falls  ← correct**
+- D. Both rise a lot
+
+**Answer: C.** R² can never decrease when a term is added; adjusted R² penalises the extra parameter.
+
+
+### M6-A16 · `vif(lm(mpg ~ wt + hp + disp, mtcars))` returns wt 4.84, hp 2.74, disp 7.32. What does this indicate? {#m6-a16}
+
+**Tests:** linear regression (lm); VIF / multicollinearity; linearity check  
+**Data:** mtcars
+
+- **A. Multicollinearity: disp overlaps strongly with the other predictors (r(wt, disp) = .89)  ← correct**
+- B. Influential observations
+- C. Heteroscedasticity
+- D. Non-normal residuals
+
+**Answer: A.** VIF > 5 is on the high side (slide 16). Consider dropping disp.
+
+
+### M6-A17 · According to the lecture (slide 11), a point is treated as a potential outlier when Cook's distance is: {#m6-a17}
+
+**Tests:** Cook's distance / influential points; standard error; IQR / quartiles / outliers
+
+- A. Negative
+- B. Greater than the residual SE
+- **C. Greater than 1 (or, often, greater than 4/N)  ← correct**
+- D. Greater than 0.05
+
+**Answer: C.** Then refit without it (subset = -k) and compare the coefficients rather than silently deleting it.
+
+
+### M6-A18 · `lm(weight ~ group, data = PlantGrowth)` gives (Intercept) = 5.032, grouptrt1 = −0.371, grouptrt2 = 0.494. What is the mean of trt2? {#m6-a18}
+
+**Tests:** linear regression (lm)  
+**Data:** PlantGrowth
+
+- A. 4.661
+- **B. 5.526  ← correct**
+- C. 0.494
+- D. 5.032
+
+**Answer: B.** ctrl is the reference (intercept = its mean); trt2 = 5.032 + 0.494 = 5.526.
+
+
+### M6-A19 · In `lmer(Reaction ~ days + (1 | Subject), data = d)`, the term `(1 | Subject)` means: {#m6-a19}
+
+**Tests:** linear mixed model (lmer)
+
+- A. Subjects are removed
+- B. Each subject gets their own slope for days
+- C. Subject is a fixed effect with one level
+- **D. Each subject gets their own intercept (baseline), drawn from a normal distribution  ← correct**
+
+**Answer: D.** (1 | g) = random intercept; (1 + x | g) adds a random slope for x.
+
+
+### M6-A20 · You want to test the fixed effect of attitude with `anova(model_without, model_with)` for two lmer models. How should both models be fitted? {#m6-a20}
+
+**Tests:** ANOVA; linear regression (lm); REML vs ML; standard error
+
+- **A. With REML = FALSE (maximum likelihood)  ← correct**
+- B. It doesn't matter
+- C. With lm()
+- D. With REML = TRUE (the default)
+
+**Answer: A.** REML likelihoods are not comparable when the fixed effects differ; the notebook and slide 9 use REML = FALSE.
+
+
+## M6 · Which test? quiz (scenario → analysis)
+
+
+### M6-W1 · Mean yield under 4 fertilisers, 8 plots each. Residuals look normal; Levene p = .30. ANOVA is significant. {#m6-w1}
+
+**Tests:** Welch (t-test or ANOVA); Levene's test (homogeneity of variance); ANOVA; Tukey HSD post hoc; post hoc / multiple comparisons (Holm, Bonferroni); Kruskal-Wallis
+
+- **A. Report ANOVA + Tukey HSD  ← correct**
+- B. Switch to Welch ANOVA
+- C. Run 6 t-tests at α = .05
+- D. Switch to Kruskal–Wallis
+
+**Answer: A.** Assumptions hold, so the ordinary ANOVA stands; Tukey (or Holm) finds the pairs.
+
+
+### M6-W2 · One-way ANOVA: Shapiro on residuals p = .40, but Levene p = .003 and the SDs differ 3-fold. {#m6-w2}
+
+**Tests:** Welch (t-test or ANOVA); Shapiro-Wilk normality test; Levene's test (homogeneity of variance); ANOVA; Welch ANOVA; post hoc / multiple comparisons (Holm, Bonferroni); Kruskal-Wallis; SD / variance
+
+- **A. Welch ANOVA: oneway.test()  ← correct**
+- B. Two-way ANOVA
+- C. Ignore it, ANOVA is robust
+- D. Kruskal–Wallis
+
+**Answer: A.** Only the equal-variance assumption fails → Welch's ANOVA (+ pairwise.t.test with pool.sd = FALSE).
+
+
+### M6-W3 · Hospital stays in 5 wards, n = 8 each, heavily right-skewed; residual Shapiro p < .001. {#m6-w3}
+
+**Tests:** Welch (t-test or ANOVA); Shapiro-Wilk normality test; ANOVA; Kruskal-Wallis; correlation (Pearson / Spearman); skewness
+
+- A. One-way ANOVA
+- B. Welch ANOVA
+- C. Pearson correlation
+- **D. Kruskal–Wallis  ← correct**
+
+**Answer: D.** Small, skewed groups with non-normal residuals → Kruskal–Wallis (ANOVA.Rmd: "removing the normality assumption").
+
+
+### M6-W4 · After a significant 4-group ANOVA you want all 6 pairwise comparisons with simultaneous 95% CIs. {#m6-w4}
+
+**Tests:** t-test; ANOVA; Tukey HSD post hoc; Kruskal-Wallis; linear regression (lm)
+
+- A. Six t.test() calls
+- B. kruskal.test()
+- **C. TukeyHSD(model)  ← correct**
+- D. summary(lm())
+
+**Answer: C.** TukeyHSD gives adjusted p-values and family-wise CIs for every pair.
+
+
+### M6-W5 · Effect of diet (3 levels) and sex (2) on weight; does the diet effect differ between the sexes? {#m6-w5}
+
+**Tests:** ANOVA; interaction; chi-square test
+
+- A. One-way ANOVA on diet
+- B. Two t-tests
+- **C. aov(weight ~ diet \* sex): look at diet:sex  ← correct**
+- D. χ² test
+
+**Answer: C.** 'Does the effect differ between…' is the interaction term in a two-way ANOVA.
+
+
+### M6-W6 · Predict house price from floor area, age and distance to the city centre. {#m6-w6}
+
+**Tests:** ANOVA; Kruskal-Wallis; linear regression (lm); linear mixed model (lmer)
+
+- A. Two-way ANOVA
+- **B. Multiple regression lm(price ~ area + age + dist)  ← correct**
+- C. Mixed model
+- D. Kruskal–Wallis
+
+**Answer: B.** Continuous outcome, several numeric predictors → multiple regression.
+
+
+### M6-W7 · residualPlots() gives a Tukey test p < .001 and the residual-vs-fitted plot is U-shaped. {#m6-w7}
+
+**Tests:** Welch (t-test or ANOVA); Tukey HSD post hoc; linearity check; transformation (log / sqrt); power / sample size
+
+- A. Nothing; R² is high
+- B. Use Welch
+- C. Remove the largest residual
+- **D. Transform (log or Box-Cox) and re-check  ← correct**
+
+**Answer: D.** Curvature = linearity violated. Regression lecture: "If there is severe violation, transform the data. Eg: Log or Box-Cox or powerTransform".
+
+
+### M6-W8 · vif() returns 9.2 for one predictor and 8.8 for another. {#m6-w8}
+
+**Tests:** Kruskal-Wallis; VIF / multicollinearity; transformation (log / sqrt)
+
+- **A. Drop or combine one of the two correlated predictors  ← correct**
+- B. Use Kruskal–Wallis
+- C. Log-transform the outcome
+- D. Fine, VIF < 10 is always OK
+
+**Answer: A.** VIF > 5 is high (slide 16): the two predictors overlap, so their coefficients are unstable.
+
+
+### M6-W9 · ncvTest p = .002 and the scale-location plot widens from left to right. {#m6-w9}
+
+**Tests:** chi-square test; heteroscedasticity test (ncvTest); transformation (log / sqrt); power / sample size
+
+- A. Report as is
+- **B. Transform Y (log or Box-Cox) and re-check  ← correct**
+- C. Add more predictors
+- D. Use a χ² test
+
+**Answer: B.** Heteroscedasticity → transform the outcome (regression lecture: "Log or Box-Cox or powerTransform") and re-check.
+
+
+### M6-W10 · 20 participants each rate 30 faces for attractiveness; does rating depend on face symmetry? {#m6-w10}
+
+**Tests:** ANOVA; linear regression (lm); linear mixed model (lmer)
+
+- A. lm(rating ~ symmetry)
+- B. Paired t-test
+- **C. lmer(rating ~ symmetry + (1 | participant) + (1 | face))  ← correct**
+- D. One-way ANOVA
+
+**Answer: C.** 600 ratings are not independent: crossed random intercepts for raters and faces (like subject and scenario in politeness).
+
+
+### M6-W11 · lmer with a random slope gives 'boundary (singular) fit', random-effect correlation −1.00. {#m6-w11}
+
+**Tests:** correlation (Pearson / Spearman); linear regression (lm); linear mixed model (lmer); singular fit
+
+- A. Switch to lm()
+- **B. Simplify to a random intercept and compare  ← correct**
+- C. Report it anyway
+- D. Add more random slopes
+
+**Answer: B.** Singular = the random structure is too rich for the data; drop the slope.
+
+
+### M6-W12 · Does adding two predictors to a regression significantly improve it? {#m6-w12}
+
+**Tests:** Shapiro-Wilk normality test; ANOVA; Tukey HSD post hoc; model selection (step, AIC)
+
+- A. Compare R² by eye
+- B. shapiro.test
+- C. TukeyHSD
+- **D. anova(m_small, m_big)  ← correct**
+
+**Answer: D.** Nested models → F test via anova(); AIC as a second opinion.
+
+
+# Past papers (Quiz 3–6, class assignment)
+
+
+## Past papers solved (from the endsem prep guide)
+
+
+### PP-1 · Quiz 3–4 answer key (17 questions) {#pp-1}
+
+**Tests:** Welch (t-test or ANOVA); chi-square test; McNemar test; correlation (Pearson / Spearman); binomial distribution; power / sample size; standard error; SD / variance
+
+| Q | Ans | Why |
+|---|---|---|
+| 1 | B | E[X] = np = 20 × 0.3 = 6 |
+| 2 | B | χ² becomes more symmetric as df increases |
+| 3 | C | P(data at least this extreme \| H0 true) |
+| 4 | C | A larger n gives a smaller SE and more power; lowering α to .01 *reduces* power |
+| 5 | B | Same 20 people before and after → paired |
+| 6 | C | (3 − 1)(4 − 1) = 6 |
+| 7 | C | `pbinom(3, …)` = P(X ≤ 3) = 0.172 |
+| 8 | A | SE ∝ 1/√n; √(100/25) = 2, so half |
+| 9 | A | Welch t(55.3) = 1.92, p = .061 > .05 |
+| 10 | B | (100 + 0 + 100)/20 = 10 |
+| 11 | A | An association, not causation and not means |
+| 12 | C | Not significant does not establish that there is no effect |
+| 13 | C | Within-person correlation lowers the variance of the differences |
+| 14 | A | Row 1 total 40 × column 1 total 35 / 70 = 20 |
+| 15 | B | McNemar uses only the discordant cells, 25 and 5 |
+| 16 | B | 6 ± 2.064 × 10/√25 = (1.87, 10.13) |
+| 17 | A | E = 20 each; χ² = (4 + 64 + 100)/20 = 8.4, df 2, p = .015; critical values 5.99 (5%) and 9.21 (1%) |
+
+
+### PP-2 · Quiz 5: PlantGrowth ANOVA and sleep paired test {#pp-2}
+
+**Tests:** t-test; one-sample t-test; paired t-test; Welch (t-test or ANOVA); Wilcoxon / Mann-Whitney (non-parametric); Shapiro-Wilk normality test; Levene's test (homogeneity of variance); ANOVA; Welch ANOVA; Tukey HSD post hoc; Kruskal-Wallis; eta squared (effect size); Cohen's d (effect size); chi-square test; confidence interval; power / sample size; SD / variance; mean / median / mode  
+**Functions:** `aov()`, `etaSquared()`, `kruskal.test()`, `leveneTest()`, `mean()`, `oneway.test()`, `pwr.t.test()`, `residuals()`, `sd()`, `shapiro.test()`, `summary()`, `t.test()`, `TukeyHSD()`, `with()`  
+**Data:** PlantGrowth, sleep
+
+```{r}
+a <- aov(weight ~ group, data = PlantGrowth)
+summary(a)                      # F(2, 27) = 4.85, p = .016
+etaSquared(a)                   # η² = .26
+TukeyHSD(a)                     # only trt2 vs trt1 differs: +0.87, p = .012
+shapiro.test(residuals(a))      # p = .44 → normal
+leveneTest(weight ~ group, PlantGrowth)  # p = .34 → equal variances
+oneway.test(weight ~ group, PlantGrowth) # Welch F(2, 17.1) = 5.18, p = .017 (robustness)
+kruskal.test(weight ~ group, PlantGrowth)# χ²(2) = 7.99, p = .018
+
+d <- with(sleep, extra[group == 2] - extra[group == 1])
+t.test(d, mu = 0)               # t(9) = 4.06, p = .0028, mean 1.58 h, CI [0.70, 2.46]
+mean(d) / sd(d)                 # Cohen's d = 1.28 (large)
+pwr.t.test(n = 10, d = 1.28/2, sig.level = .05, type = "paired")  # power = 0.44
+shapiro.test(d)                 # p = .033 → check with wilcox.test(d, mu = 0)
+```
+
+**Takeaways.** The assumptions held for PlantGrowth, so the right "revision" is to say no change is needed, and to show that Welch and Kruskal–Wallis agree. Treatment 2 beat treatment 1, and neither differed from control. For `sleep`, the effect is large, but with only 10 people a true effect half that size would be detected less than half the time (power 0.44).
+
+
+### PP-3 · Quiz 6: swiss multiple regression {#pp-3}
+
+**Tests:** Shapiro-Wilk normality test; linear regression (lm); heteroscedasticity test (ncvTest); VIF / multicollinearity; linearity check; SD / variance  
+**Functions:** `lm()`, `ncvTest()`, `plot()`, `residualPlots()`, `residuals()`, `shapiro.test()`, `summary()`, `vif()`  
+**Data:** swiss
+
+```{r}
+m <- lm(Fertility ~ Education + Agriculture + Infant.Mortality, data = swiss)
+summary(m)   # F(3, 43) = 18.7, p = 6.5e-08; R² = .566, adj R² = .536
+vif(m)                       # 1.75, 1.74, 1.04 → fine
+residualPlots(m)             # curvature tests all p > .36 → linear
+shapiro.test(residuals(m))   # p = .42 → normal residuals
+ncvTest(m)                   # p = .33 → constant variance
+# independence: one row per province, no repeated measures → argue from the design
+plot(m, which = 4)           # Sierre D = 0.20 > 4/47 = 0.085, but < 1
+```
+
+Fertility = 51.10 − 0.857 Education − 0.026 Agriculture + 1.493 Infant.Mortality
+
+**Interpretation.** Education (b = −0.86, p < .001) and infant mortality (b = +1.49, p = .001) are significant after accounting for the other predictors; agriculture is not (p = .72). The model explains about 54% of the variance in fertility (adjusted R²). Linearity, normality, constant variance and collinearity are all fine. Independence holds by design (one row per province, no repeated measures), although neighbouring provinces share regional and cultural factors. Sierre is influential by the 4/N rule; refit without it to check. Limitations: the data are observational, so the coefficients are associations rather than causes; n = 47; aggregated province data invite the ecological fallacy.
+
+
+### PP-4 · Class assignment: results to check your work against {#pp-4}
+
+**Tests:** Student t-test (equal variances); Welch (t-test or ANOVA); chi-square test; Fisher's exact test; McNemar test; expected counts; confidence interval; proportions
+
+| Problem | Result |
+|---|---|
+| 1. mpg vs 20 | mean 20.09, t(31) = 0.085, p = .93, CI [17.92, 22.26]; the CI contains 20, agreeing with "not significant" |
+| 2. mpg by am | Student t(30) = −4.11, p = .0003; Welch t(18.3) = −3.77, p = .0014. Prefer Welch: the groups have unequal n and SDs |
+| 3. sleep paired | t(9) = 4.06, p = .003. Independent t is wrong because the same 10 people took both drugs |
+| 4. cyl proportions | observed 11, 7, 14; expected 10.67 each; χ²(2) = 2.31, p = .31 |
+| 5. am × cyl | χ²(2) = 8.74, p = .013, but 3 of 6 expected counts are below 5 (smallest 2.84) → Fisher p = .009, same conclusion |
+| 6. McNemar | discordant cells 3 and 10; χ²(1) = 2.77, p = .096 → no clear evidence of change |
